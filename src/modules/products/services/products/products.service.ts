@@ -10,40 +10,40 @@ export class ProductsService {
     private readonly productsRepository: Repository<Product>,
   ) {}
 
-  findAll(categoryId?: number): Promise<Product[]> {
+  findAll(barId: number, categoryId?: number): Promise<Product[]> {
     return this.productsRepository.find({
-      where: categoryId ? { categoryId } : {},
+      where: categoryId ? { barId, categoryId } : { barId },
       order: { name: 'ASC' },
     });
   }
 
-  findActive(): Promise<Product[]> {
+  findActive(barId: number): Promise<Product[]> {
     return this.productsRepository.find({
-      where: { active: true },
+      where: { barId, active: true },
       order: { name: 'ASC' },
     });
   }
 
-  findActiveByCategory(categoryId: number): Promise<Product[]> {
+  findActiveByCategory(barId: number, categoryId: number): Promise<Product[]> {
     return this.productsRepository.find({
-      where: { active: true, categoryId },
+      where: { barId, active: true, categoryId },
       order: { name: 'ASC' },
     });
   }
 
-  findOne(id: number): Promise<Product | null> {
-    return this.productsRepository.findOne({ where: { id } });
+  findOne(id: number, barId: number): Promise<Product | null> {
+    return this.productsRepository.findOne({ where: { id, barId } });
   }
 
-  create(data: Partial<Product>): Promise<Product> {
-    return this.productsRepository.save(this.productsRepository.create(data));
+  create(barId: number, data: Partial<Product>): Promise<Product> {
+    return this.productsRepository.save(this.productsRepository.create({ ...data, barId }));
   }
 
-  async update(id: number, data: Partial<Product>): Promise<void> {
-    await this.productsRepository.update({ id }, data);
+  async update(id: number, barId: number, data: Partial<Product>): Promise<void> {
+    await this.productsRepository.update({ id, barId }, data);
   }
 
-  async remove(id: number): Promise<void> {
-    await this.productsRepository.delete({ id });
+  async remove(id: number, barId: number): Promise<void> {
+    await this.productsRepository.delete({ id, barId });
   }
 }

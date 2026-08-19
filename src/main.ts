@@ -10,6 +10,8 @@ import { Pool } from 'pg';
 import connectPgSimple from 'connect-pg-simple';
 import { Request, Response, NextFunction } from 'express';
 import { AuthRedirectFilter } from './modules/auth/filters/auth-redirect.filter';
+import { User } from './modules/users/entities/user.entity';
+import { setSessionMiddleware } from './common/session-middleware';
 
 hbs.registerHelper('eq', (a: unknown, b: unknown) => a === b);
 hbs.registerHelper('formatPrice', (value: string | number) =>
@@ -42,20 +44,21 @@ async function bootstrap() {
     database: config.get<string>('DB_DATABASE'),
   });
 
-  app.use(
-    session({
-      store: new PgSession({ pool, createTableIfMissing: true }),
-      secret: config.get<string>('SESSION_SECRET') ?? 'dev-secret',
-      resave: false,
-      saveUninitialized: false,
-      cookie: { maxAge: 1000 * 60 * 60 * 12 },
-    }),
-  );
+  const sessionMiddleware = session({
+    store: new PgSession({ pool, createTableIfMissing: true }),
+    secret: config.get<string>('SESSION_SECRET') ?? 'dev-secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 1000 * 60 * 60 * 12 },
+  });
+  setSessionMiddleware(sessionMiddleware);
+  app.use(sessionMiddleware);
   app.use(passport.initialize());
   app.use(passport.session());
 
   app.use((req: Request, res: Response, next: NextFunction) => {
     res.locals.currentUser = req.user ?? null;
+    res.locals.currentBar = (req.user as User | undefined)?.bar ?? null;
     next();
   });
 

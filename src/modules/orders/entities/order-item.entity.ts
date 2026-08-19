@@ -8,6 +8,7 @@ import {
 import { Product } from '../../products/entities/product.entity';
 import { CategoryDestination } from '../../categories/entities/category.entity';
 import { Order } from './order.entity';
+import { Bar } from '../../bars/entities/bar.entity';
 
 export type OrderItemStatus = 'pendiente' | 'listo' | 'servido';
 
@@ -41,4 +42,11 @@ export class OrderItem {
 
   @Column({ type: 'varchar', default: 'pendiente' })
   status: OrderItemStatus;
+
+  @ManyToOne(() => Bar, { nullable: true, onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'barId' })
+  bar: Bar | null;
+
+  @Column({ nullable: true })
+  barId: number | null;
 }

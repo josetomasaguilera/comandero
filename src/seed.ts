@@ -7,11 +7,13 @@ import { User } from './modules/users/entities/user.entity';
 import { Table, TableZone } from './modules/tables/entities/table.entity';
 import { Category } from './modules/categories/entities/category.entity';
 import { Product } from './modules/products/entities/product.entity';
+import { Bar } from './modules/bars/entities/bar.entity';
 
 async function seed() {
   const app = await NestFactory.createApplicationContext(AppModule);
 
   const usersRepo = app.get<Repository<User>>(getRepositoryToken(User));
+  const barsRepo = app.get<Repository<Bar>>(getRepositoryToken(Bar));
   const tablesRepo = app.get<Repository<Table>>(getRepositoryToken(Table));
   const categoriesRepo = app.get<Repository<Category>>(
     getRepositoryToken(Category),
@@ -19,6 +21,7 @@ async function seed() {
   const productsRepo = app.get<Repository<Product>>(
     getRepositoryToken(Product),
   );
+  const bar = await barsRepo.findOneByOrFail({ name: 'Bar principal' });
 
   const existingTables = await tablesRepo.count();
   if (existingTables === 0) {
@@ -30,7 +33,7 @@ async function seed() {
     for (const { zone, label } of zones) {
       for (let i = 1; i <= 4; i++) {
         await tablesRepo.save(
-          tablesRepo.create({ name: `${label} ${i}`, zone, status: 'libre' }),
+          tablesRepo.create({ name: `${label} ${i}`, zone, status: 'libre', barId: bar.id }),
         );
       }
     }
@@ -47,7 +50,7 @@ async function seed() {
     for (const u of users) {
       const passwordHash = await bcrypt.hash(u.password, 10);
       await usersRepo.save(
-        usersRepo.create({ username: u.username, passwordHash, role: u.role }),
+        usersRepo.create({ username: u.username, passwordHash, role: u.role, barId: bar.id }),
       );
     }
     console.log('Usuarios creados: admin/admin123, camarero/camarero123, cocina/cocina123');
@@ -56,11 +59,11 @@ async function seed() {
   const existingCategories = await categoriesRepo.count();
   if (existingCategories === 0) {
     const categories = await categoriesRepo.save([
-      categoriesRepo.create({ name: 'Cafés', order: 1, destination: 'barra' }),
-      categoriesRepo.create({ name: 'Bebidas', order: 2, destination: 'barra' }),
-      categoriesRepo.create({ name: 'Bollería', order: 3, destination: 'barra' }),
-      categoriesRepo.create({ name: 'Tostas', order: 4, destination: 'cocina' }),
-      categoriesRepo.create({ name: 'Platos combinados', order: 5, destination: 'cocina' }),
+      categoriesRepo.create({ name: 'Cafés', order: 1, destination: 'barra', barId: bar.id }),
+      categoriesRepo.create({ name: 'Bebidas', order: 2, destination: 'barra', barId: bar.id }),
+      categoriesRepo.create({ name: 'Bollería', order: 3, destination: 'barra', barId: bar.id }),
+      categoriesRepo.create({ name: 'Tostas', order: 4, destination: 'cocina', barId: bar.id }),
+      categoriesRepo.create({ name: 'Platos combinados', order: 5, destination: 'cocina', barId: bar.id }),
     ]);
     console.log('Categorías creadas:', categories.length);
 
@@ -80,7 +83,7 @@ async function seed() {
       { name: 'Plato combinado 2 (pollo, ensalada, patatas)', price: '8.00', categoryId: byName['Platos combinados'].id },
     ];
     for (const p of products) {
-      await productsRepo.save(productsRepo.create({ ...p, active: true }));
+      await productsRepo.save(productsRepo.create({ ...p, active: true, barId: bar.id }));
     }
     console.log('Productos creados:', products.length);
   }

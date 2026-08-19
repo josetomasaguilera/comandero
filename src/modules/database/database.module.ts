@@ -7,6 +7,7 @@ import { Category } from '../categories/entities/category.entity';
 import { Product } from '../products/entities/product.entity';
 import { Order } from '../orders/entities/order.entity';
 import { OrderItem } from '../orders/entities/order-item.entity';
+import { Bar } from '../bars/entities/bar.entity';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { OrderItem } from '../orders/entities/order-item.entity';
           ? { rejectUnauthorized: false }
           : false,
 
-        entities: [User, Table, Category, Product, Order, OrderItem],
+        entities: [Bar, User, Table, Category, Product, Order, OrderItem],
         synchronize: true,
       }),
     }),

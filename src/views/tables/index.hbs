@@ -42,7 +42,7 @@
 <script src="/socket.io/socket.io.js"></script>
 <script>
   const socket = io();
-  socket.emit('join', 'waiters');
+  socket.emit('join', { barId: {{currentBar.id}}, role: 'waiters' });
   socket.on('waiter:tablesChanged', () => window.location.reload());
 </script>
 </body>

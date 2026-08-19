@@ -10,6 +10,7 @@ import {
 import { Table } from '../../tables/entities/table.entity';
 import { User } from '../../users/entities/user.entity';
 import { OrderItem } from './order-item.entity';
+import { Bar } from '../../bars/entities/bar.entity';
 
 export type OrderStatus = 'abierto' | 'cerrado';
 
@@ -43,4 +44,11 @@ export class Order {
 
   @Column({ type: 'timestamp', nullable: true })
   closedAt: Date | null;
+
+  @ManyToOne(() => Bar, { nullable: true, onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'barId' })
+  bar: Bar | null;
+
+  @Column({ nullable: true })
+  barId: number | null;
 }

@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   NotFoundException,
+  ForbiddenException,
   Param,
   ParseIntPipe,
   Post,
@@ -40,17 +41,18 @@ export class OrdersController {
     @Param('tableId', ParseIntPipe) tableId: number,
     @Req() req: Request,
   ) {
-    const table = await this.tablesService.findOne(tableId);
+    const waiter = req.user as User;
+    const barId = this.barIdFor(waiter);
+    const table = await this.tablesService.findOne(tableId, barId);
     if (!table) {
       throw new NotFoundException('Mesa no encontrada');
     }
-    const waiter = req.user as User;
     const wasOccupied = table.status === 'ocupada';
-    const order = await this.ordersService.openOrderForTable(tableId, waiter.id);
+    const order = await this.ordersService.openOrderForTable(tableId, waiter.id, barId);
     if (!wasOccupied) {
-      this.ordersGateway.notifyTableStatusChanged();
+      this.ordersGateway.notifyTableStatusChanged(barId);
     }
-    const categories = await this.categoriesService.findAll();
+    const categories = await this.categoriesService.findAll(barId);
 
     return {
       title: `Mesa ${table.name}`,
@@ -67,17 +69,18 @@ export class OrdersController {
     @Param('categoryId', ParseIntPipe) categoryId: number,
     @Req() req: Request,
   ) {
-    const table = await this.tablesService.findOne(tableId);
+    const waiter = req.user as User;
+    const barId = this.barIdFor(waiter);
+    const table = await this.tablesService.findOne(tableId, barId);
     if (!table) {
       throw new NotFoundException('Mesa no encontrada');
     }
-    const category = await this.categoriesService.findOne(categoryId);
+    const category = await this.categoriesService.findOne(categoryId, barId);
     if (!category) {
       throw new NotFoundException('Categoría no encontrada');
     }
-    const waiter = req.user as User;
-    const order = await this.ordersService.openOrderForTable(tableId, waiter.id);
-    const products = await this.productsService.findActiveByCategory(categoryId);
+    const order = await this.ordersService.openOrderForTable(tableId, waiter.id, barId);
+    const products = await this.productsService.findActiveByCategory(barId, categoryId);
 
     return {
       title: `Mesa ${table.name} · ${category.name}`,
@@ -96,16 +99,18 @@ export class OrdersController {
     @Req() req: Request,
   ) {
     const waiter = req.user as User;
-    const order = await this.ordersService.openOrderForTable(tableId, waiter.id);
+    const barId = this.barIdFor(waiter);
+    const order = await this.ordersService.openOrderForTable(tableId, waiter.id, barId);
     const item = await this.ordersService.addItem(
       order.id,
       Number(body.productId),
       Number(body.quantity) || 1,
       body.notes || null,
+      barId,
     );
     if (item.destination === 'cocina') {
-      const table = await this.tablesService.findOne(tableId);
-      this.ordersGateway.notifyKitchenNewItems(tableId, table?.name ?? '');
+      const table = await this.tablesService.findOne(tableId, barId);
+      this.ordersGateway.notifyKitchenNewItems(barId, tableId, table?.name ?? '');
     }
     res.redirect(this.sameOriginReferer(req) ?? `/tables/${tableId}/order`);
   }
@@ -117,12 +122,13 @@ export class OrdersController {
     @Res() res: Response,
     @Req() req: Request,
   ) {
-    const order = await this.ordersService.findOpenOrderForTable(tableId);
+    const barId = this.barIdFor(req.user as User);
+    const order = await this.ordersService.findOpenOrderForTable(tableId, barId);
     if (order) {
-      const result = await this.ordersService.decrementProductInOrder(order.id, productId);
+      const result = await this.ordersService.decrementProductInOrder(order.id, productId, barId);
       if (result?.item.destination === 'cocina') {
-        const table = await this.tablesService.findOne(tableId);
-        this.ordersGateway.notifyKitchenItemsUpdated(tableId, table?.name ?? '');
+        const table = await this.tablesService.findOne(tableId, barId);
+        this.ordersGateway.notifyKitchenItemsUpdated(barId, tableId, table?.name ?? '');
       }
     }
     res.redirect(this.sameOriginReferer(req) ?? `/tables/${tableId}/order`);
@@ -135,10 +141,11 @@ export class OrdersController {
     @Res() res: Response,
     @Req() req: Request,
   ) {
-    const item = await this.ordersService.incrementQuantity(itemId);
+    const barId = this.barIdFor(req.user as User);
+    const item = await this.ordersService.incrementQuantity(itemId, barId);
     if (item.destination === 'cocina') {
-      const table = await this.tablesService.findOne(tableId);
-      this.ordersGateway.notifyKitchenNewItems(tableId, table?.name ?? '');
+      const table = await this.tablesService.findOne(tableId, barId);
+      this.ordersGateway.notifyKitchenNewItems(barId, tableId, table?.name ?? '');
     }
     res.redirect(this.sameOriginReferer(req) ?? `/tables/${tableId}/order`);
   }
@@ -150,10 +157,11 @@ export class OrdersController {
     @Res() res: Response,
     @Req() req: Request,
   ) {
-    const { item } = await this.ordersService.decrementQuantity(itemId);
+    const barId = this.barIdFor(req.user as User);
+    const { item } = await this.ordersService.decrementQuantity(itemId, barId);
     if (item.destination === 'cocina') {
-      const table = await this.tablesService.findOne(tableId);
-      this.ordersGateway.notifyKitchenItemsUpdated(tableId, table?.name ?? '');
+      const table = await this.tablesService.findOne(tableId, barId);
+      this.ordersGateway.notifyKitchenItemsUpdated(barId, tableId, table?.name ?? '');
     }
     res.redirect(this.sameOriginReferer(req) ?? `/tables/${tableId}/order`);
   }
@@ -163,8 +171,9 @@ export class OrdersController {
     @Param('tableId', ParseIntPipe) tableId: number,
     @Param('itemId', ParseIntPipe) itemId: number,
     @Res() res: Response,
+    @Req() req: Request,
   ) {
-    await this.ordersService.setItemStatus(itemId, 'servido');
+    await this.ordersService.setItemStatus(itemId, this.barIdFor(req.user as User), 'servido');
     res.redirect(`/tables/${tableId}/order`);
   }
 
@@ -172,18 +181,20 @@ export class OrdersController {
   async close(
     @Param('tableId', ParseIntPipe) tableId: number,
     @Res() res: Response,
+    @Req() req: Request,
   ) {
-    const order = await this.ordersService.findOpenOrderForTable(tableId);
+    const barId = this.barIdFor(req.user as User);
+    const order = await this.ordersService.findOpenOrderForTable(tableId, barId);
     if (order) {
-      await this.ordersService.closeOrder(order.id);
+      await this.ordersService.closeOrder(order.id, barId);
     }
-    this.ordersGateway.notifyTableStatusChanged();
+    this.ordersGateway.notifyTableStatusChanged(barId);
     res.redirect('/tables');
   }
 
   @Get('state')
-  async state(@Param('tableId', ParseIntPipe) tableId: number) {
-    const order = await this.ordersService.findOpenOrderForTable(tableId);
+  async state(@Param('tableId', ParseIntPipe) tableId: number, @Req() req: Request) {
+    const order = await this.ordersService.findOpenOrderForTable(tableId, this.barIdFor(req.user as User));
     return { items: order?.items ?? [] };
   }
 
@@ -201,5 +212,12 @@ export class OrdersController {
     } catch {
       return undefined;
     }
+  }
+
+  private barIdFor(user: User): number {
+    if (!user.barId) {
+      throw new ForbiddenException('Usuario sin bar asignado');
+    }
+    return user.barId;
   }
 }

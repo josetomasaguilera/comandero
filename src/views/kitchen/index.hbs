@@ -98,7 +98,7 @@
   });
 
   updateSoundStatus();
-  socket.emit('join', 'kitchen');
+  socket.emit('join', { barId: {{currentBar.id}}, role: 'kitchen' });
   socket.on('kitchen:newItems', () => {
     playKitchenSound('new');
     window.setTimeout(() => window.location.reload(), 800);

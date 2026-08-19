@@ -10,12 +10,12 @@ export class TablesService {
     private readonly tablesRepository: Repository<Table>,
   ) {}
 
-  findAll(): Promise<Table[]> {
-    return this.tablesRepository.find({ order: { id: 'ASC' } });
+  findAll(barId: number): Promise<Table[]> {
+    return this.tablesRepository.find({ where: { barId }, order: { id: 'ASC' } });
   }
 
-  async findAllGroupedByZone(): Promise<Record<TableZone, Table[]>> {
-    const tables = await this.findAll();
+  async findAllGroupedByZone(barId: number): Promise<Record<TableZone, Table[]>> {
+    const tables = await this.findAll(barId);
     return {
       interior: tables.filter((t) => t.zone === 'interior'),
       terraza_a: tables.filter((t) => t.zone === 'terraza_a'),
@@ -23,11 +23,11 @@ export class TablesService {
     };
   }
 
-  findOne(id: number): Promise<Table | null> {
-    return this.tablesRepository.findOne({ where: { id } });
+  findOne(id: number, barId: number): Promise<Table | null> {
+    return this.tablesRepository.findOne({ where: { id, barId } });
   }
 
-  async setStatus(id: number, status: TableStatus): Promise<void> {
-    await this.tablesRepository.update({ id }, { status });
+  async setStatus(id: number, barId: number, status: TableStatus): Promise<void> {
+    await this.tablesRepository.update({ id, barId }, { status });
   }
 }

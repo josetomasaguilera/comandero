@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Bar } from '../../bars/entities/bar.entity';
 
 export type UserRole = 'admin' | 'waiter' | 'kitchen';
 
@@ -15,4 +16,11 @@ export class User {
 
   @Column({ type: 'varchar' })
   role: UserRole;
+
+  @ManyToOne(() => Bar, { eager: true, nullable: true, onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'barId' })
+  bar: Bar | null;
+
+  @Column({ nullable: true })
+  barId: number | null;
 }

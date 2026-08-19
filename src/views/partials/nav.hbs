@@ -1,5 +1,5 @@
 <header class="topbar">
-  <div class="topbar__brand">☕ Comandero</div>
+  <div class="topbar__brand">☕ {{#if currentBar}}{{currentBar.name}}{{else}}Comandero{{/if}}</div>
   {{#if currentUser}}
   <nav class="topbar__nav">
     {{#if (eq currentUser.role "waiter")}}

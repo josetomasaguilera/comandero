@@ -10,23 +10,23 @@ export class CategoriesService {
     private readonly categoriesRepository: Repository<Category>,
   ) {}
 
-  findAll(): Promise<Category[]> {
-    return this.categoriesRepository.find({ order: { order: 'ASC' } });
+  findAll(barId: number): Promise<Category[]> {
+    return this.categoriesRepository.find({ where: { barId }, order: { order: 'ASC' } });
   }
 
-  findOne(id: number): Promise<Category | null> {
-    return this.categoriesRepository.findOne({ where: { id } });
+  findOne(id: number, barId: number): Promise<Category | null> {
+    return this.categoriesRepository.findOne({ where: { id, barId } });
   }
 
-  create(data: Partial<Category>): Promise<Category> {
-    return this.categoriesRepository.save(this.categoriesRepository.create(data));
+  create(barId: number, data: Partial<Category>): Promise<Category> {
+    return this.categoriesRepository.save(this.categoriesRepository.create({ ...data, barId }));
   }
 
-  async update(id: number, data: Partial<Category>): Promise<void> {
-    await this.categoriesRepository.update({ id }, data);
+  async update(id: number, barId: number, data: Partial<Category>): Promise<void> {
+    await this.categoriesRepository.update({ id, barId }, data);
   }
 
-  async remove(id: number): Promise<void> {
-    await this.categoriesRepository.delete({ id });
+  async remove(id: number, barId: number): Promise<void> {
+    await this.categoriesRepository.delete({ id, barId });
   }
 }

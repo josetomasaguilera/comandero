@@ -11,6 +11,7 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { KitchenModule } from './modules/kitchen/kitchen.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { EventsModule } from './modules/events/events.module';
+import { BarsModule } from './modules/bars/bars.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { EventsModule } from './modules/events/events.module';
     KitchenModule,
     AdminModule,
     EventsModule,
+    BarsModule,
   ],
   controllers: [AppController],
 })
