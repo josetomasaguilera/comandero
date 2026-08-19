@@ -1,0 +1,23 @@
+<section class="ticket">
+  <h2>Pedido</h2>
+  <ul id="ticket-items" class="ticket-items">
+    {{#each order.items}}
+    <li class="ticket-item ticket-item--{{this.status}}">
+      <span class="ticket-item__qty">{{this.quantity}}x</span>
+      <span class="ticket-item__name">{{this.product.name}}</span>
+      {{#if this.notes}}<span class="ticket-item__notes">({{this.notes}})</span>{{/if}}
+      <span class="ticket-item__status">{{this.status}}</span>
+      <form action="/tables/{{../table.id}}/order/items/{{this.id}}/incrementar" method="post">
+        <button type="submit" class="button button--small" title="Añadir 1 unidad">+1</button>
+      </form>
+      <form action="/tables/{{../table.id}}/order/items/{{this.id}}/decrementar" method="post">
+        <button type="submit" class="button button--small button--secondary" title="Quitar 1 unidad">-1</button>
+      </form>
+    </li>
+    {{/each}}
+  </ul>
+  <div class="ticket-total">Total: {{total order.items}}</div>
+  <form action="/tables/{{table.id}}/order/cerrar" method="post">
+    <button type="submit" class="button button--danger">Cerrar mesa y cobrar</button>
+  </form>
+</section>

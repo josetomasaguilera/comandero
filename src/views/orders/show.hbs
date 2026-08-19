@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+{{> nav}}
+<main class="container order-page">
+  <p><a href="/tables">&larr; Volver a mesas</a></p>
+  <h1>{{table.name}} <span class="badge badge--{{table.status}}">{{table.status}}</span></h1>
+
+  <div class="order-layout">
+    <section class="menu">
+      <h2>Categorías</h2>
+      <div class="category-grid">
+        {{#each categories}}
+        <a class="category-card" href="/tables/{{../table.id}}/order/categories/{{this.id}}">
+          {{#if this.imageUrl}}<img class="category-card__image" src="{{this.imageUrl}}" alt="">{{/if}}
+          <span class="category-card__name">{{this.name}}</span>
+          <span class="category-card__destination">{{this.destination}}</span>
+        </a>
+        {{/each}}
+      </div>
+    </section>
+
+    {{> order_ticket}}
+  </div>
+</main>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+  socket.emit('join', 'waiters');
+  socket.on('waiter:itemReady', (data) => {
+    if (data.tableId === {{table.id}}) window.location.reload();
+  });
+</script>
+</body>
+</html>

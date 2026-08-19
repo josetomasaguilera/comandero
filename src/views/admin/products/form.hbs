@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+{{> nav}}
+<main class="container">
+  <p><a href="/admin/products">&larr; Productos</a></p>
+  <h1>{{title}}</h1>
+  <form class="admin-form" action="{{#if product}}/admin/products/{{product.id}}{{else}}/admin/products{{/if}}" method="post" enctype="multipart/form-data">
+    <label>Nombre
+      <input type="text" name="name" value="{{product.name}}" required>
+    </label>
+    <label>Precio
+      <input type="text" name="price" value="{{product.price}}" required>
+    </label>
+    <label>Categoría
+      <select name="categoryId" required>
+        {{#each categories}}
+        <option value="{{this.id}}" {{#if (eq this.id ../product.categoryId)}}selected{{/if}}>{{this.name}}</option>
+        {{/each}}
+      </select>
+    </label>
+    <label class="checkbox">
+      <input type="checkbox" name="active" {{#if product.active}}checked{{/if}}>
+      Activo
+    </label>
+    <label>Foto
+      {{#if product.imageUrl}}
+      <img class="image-preview" src="{{product.imageUrl}}" alt="">
+      {{/if}}
+      <input type="file" name="image" accept="image/*">
+    </label>
+    <button type="submit">Guardar</button>
+  </form>
+</main>
+</body>
+</html>

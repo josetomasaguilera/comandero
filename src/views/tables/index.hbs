@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+{{> nav}}
+<main class="container">
+  <h1>Mesas</h1>
+  {{#each zones}}
+  <section class="zone">
+    <h2>{{this.label}}</h2>
+    <div class="tables-grid">
+      {{#each this.tables}}
+      <div class="table-card table-card--{{this.status}}">
+        <div class="table-card__name">{{this.name}}</div>
+        <div class="table-card__status">{{this.status}}</div>
+        <div class="table-card__actions">
+          {{#if (eq this.status "ocupada")}}
+          <a class="button" href="/tables/{{this.id}}/order">Ver pedido</a>
+          {{else}}
+          <a class="button" href="/tables/{{this.id}}/order">Abrir mesa</a>
+          {{#if (eq this.status "libre")}}
+          <form action="/tables/{{this.id}}/reservar" method="post">
+            <button type="submit" class="button button--secondary">Reservar</button>
+          </form>
+          {{else}}
+          <form action="/tables/{{this.id}}/liberar" method="post">
+            <button type="submit" class="button button--secondary">Liberar</button>
+          </form>
+          {{/if}}
+          {{/if}}
+        </div>
+      </div>
+      {{/each}}
+    </div>
+  </section>
+  {{/each}}
+</main>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+  socket.emit('join', 'waiters');
+  socket.on('waiter:tablesChanged', () => window.location.reload());
+</script>
+</body>
+</html>

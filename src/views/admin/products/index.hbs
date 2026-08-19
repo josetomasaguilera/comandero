@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+{{> nav}}
+<main class="container">
+  <p><a href="/admin">&larr; Administración</a></p>
+  <h1>Productos</h1>
+  <a class="button" href="/admin/products/new">Nuevo producto</a>
+  <form class="filter-form" action="/admin/products" method="get">
+    <label>Categoría
+      <select name="categoryId" onchange="this.form.submit()">
+        <option value="">Todas</option>
+        {{#each categories}}
+        <option value="{{this.id}}" {{#if (eq this.id ../selectedCategoryId)}}selected{{/if}}>{{this.name}}</option>
+        {{/each}}
+      </select>
+    </label>
+    <noscript><button type="submit">Filtrar</button></noscript>
+  </form>
+  <table class="admin-table">
+    <thead>
+      <tr><th>Foto</th><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Activo</th><th></th></tr>
+    </thead>
+    <tbody>
+      {{#each products}}
+      <tr>
+        <td>{{#if this.imageUrl}}<img class="thumb" src="{{this.imageUrl}}" alt="">{{/if}}</td>
+        <td>{{this.name}}</td>
+        <td>{{this.category.name}}</td>
+        <td>{{formatPrice this.price}}</td>
+        <td>{{#if this.active}}Sí{{else}}No{{/if}}</td>
+        <td>
+          <a href="/admin/products/{{this.id}}/edit">Editar</a>
+          <form action="/admin/products/{{this.id}}/delete" method="post" style="display:inline">
+            <button type="submit" class="link-button">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</main>
+</body>
+</html>

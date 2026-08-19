@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+{{> nav}}
+<main class="container">
+  <div class="kitchen-header">
+    <h1>Cocina</h1>
+    <button id="enable-sound" type="button" class="button button--secondary">Activar sonido</button>
+  </div>
+  <p id="sound-status" class="sound-status" aria-live="polite">Las alertas sonoras están desactivadas.</p>
+  <div class="kitchen-board">
+    {{#each tables}}
+    <section class="kitchen-ticket">
+      <h2>{{this.tableName}}</h2>
+      <ul>
+        {{#each this.items}}
+        <li class="kitchen-item">
+          <span class="kitchen-item__qty">{{this.quantity}}x</span>
+          <span class="kitchen-item__name">{{this.product.name}}</span>
+          {{#if this.notes}}<span class="kitchen-item__notes">({{this.notes}})</span>{{/if}}
+          <form action="/kitchen/items/{{this.id}}/listo" method="post">
+            <button type="submit" class="button button--small">Listo</button>
+          </form>
+        </li>
+        {{/each}}
+      </ul>
+    </section>
+    {{/each}}
+    {{#unless tables.length}}
+    <p>No hay pedidos pendientes en cocina.</p>
+    {{/unless}}
+  </div>
+</main>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+  const enableSoundButton = document.getElementById('enable-sound');
+  const soundStatus = document.getElementById('sound-status');
+  let audioContext;
+  let soundEnabled = localStorage.getItem('kitchenSoundEnabled') === 'true';
+
+  function updateSoundStatus() {
+    enableSoundButton.textContent = soundEnabled ? 'Sonido activado' : 'Activar sonido';
+    enableSoundButton.classList.toggle('button--secondary', !soundEnabled);
+    soundStatus.textContent = soundEnabled
+      ? 'Las alertas sonoras están activadas.'
+      : 'Las alertas sonoras están desactivadas.';
+  }
+
+  function playKitchenSound(type) {
+    if (!soundEnabled) return;
+
+    audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+    const startTone = () => {
+      const isNewOrder = type === 'new';
+      const notes = isNewOrder
+        ? [660, 880, 1047, 1319]
+        : [440, 330, 220];
+      const interval = isNewOrder ? 0.16 : 0.2;
+      const duration = isNewOrder ? 0.2 : 0.26;
+      const volume = isNewOrder ? 0.2 : 0.14;
+
+      notes.forEach((frequency, index) => {
+        const offset = index * interval;
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        oscillator.type = isNewOrder ? 'square' : 'triangle';
+        oscillator.frequency.value = frequency;
+        gain.gain.setValueAtTime(volume, audioContext.currentTime + offset);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + offset + duration);
+        oscillator.connect(gain).connect(audioContext.destination);
+        oscillator.start(audioContext.currentTime + offset);
+        oscillator.stop(audioContext.currentTime + offset + duration);
+      });
+    };
+
+    if (audioContext.state === 'suspended') {
+      audioContext.resume().then(startTone).catch(() => {
+        soundEnabled = false;
+        localStorage.removeItem('kitchenSoundEnabled');
+        updateSoundStatus();
+      });
+      return;
+    }
+    startTone();
+  }
+
+  enableSoundButton.addEventListener('click', () => {
+    soundEnabled = true;
+    localStorage.setItem('kitchenSoundEnabled', 'true');
+    playKitchenSound('new');
+    updateSoundStatus();
+  });
+
+  updateSoundStatus();
+  socket.emit('join', 'kitchen');
+  socket.on('kitchen:newItems', () => {
+    playKitchenSound('new');
+    window.setTimeout(() => window.location.reload(), 800);
+  });
+  socket.on('kitchen:itemsUpdated', () => {
+    playKitchenSound('removed');
+    window.setTimeout(() => window.location.reload(), 700);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+{{#if redirectTo}}
+<script>window.location.href = "{{redirectTo}}";</script>
+{{else}}
+<div class="login-page">
+  <form class="login-form" action="/login" method="post">
+    <h1>☕ Comandero</h1>
+    <p>Inicia sesión</p>
+    {{#if error}}
+    <p class="error">Usuario o contraseña incorrectos.</p>
+    {{/if}}
+    <label>Usuario
+      <input type="text" name="username" autocomplete="username" required autofocus>
+    </label>
+    <label>Contraseña
+      <input type="password" name="password" autocomplete="current-password" required>
+    </label>
+    <button type="submit">Entrar</button>
+  </form>
+</div>
+{{/if}}
+</body>
+</html>

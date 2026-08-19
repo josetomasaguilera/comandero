@@ -1,0 +1,247 @@
+* { box-sizing: border-box; }
+html {
+  font-size: 19px;
+}
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  margin: 0;
+  background: #f5f3f0;
+  color: #2b2420;
+}
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #2b2420;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+}
+.topbar__brand { font-weight: bold; font-size: 1.1rem; }
+.topbar__nav a {
+  color: #fff;
+  margin-right: 1rem;
+  text-decoration: none;
+}
+.topbar__nav a:hover { text-decoration: underline; }
+.topbar__user { display: flex; align-items: center; gap: 0.75rem; }
+
+.link-button {
+  background: none;
+  border: none;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+}
+
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.login-form {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 300px;
+}
+.login-form label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.9rem; }
+.login-form input { padding: 0.5rem; font-size: 1rem; }
+.login-form .error { color: #b3261e; }
+
+.button {
+  display: inline-block;
+  background: #6f4e37;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+.button--secondary { background: #8a8a8a; }
+.button--danger { background: #b3261e; }
+.button--small { padding: 0.25rem 0.6rem; font-size: 0.85rem; }
+
+.zone h2 { margin-bottom: 0.5rem; }
+.tables-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.table-card {
+  border-radius: 8px;
+  padding: 1rem;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.table-card--libre { background: #3a7d44; }
+.table-card--reservada { background: #c98a1a; }
+.table-card--ocupada { background: #b3261e; }
+.table-card__name { font-size: 1.2rem; font-weight: bold; }
+.table-card__status { text-transform: uppercase; font-size: 0.75rem; }
+.table-card__actions { display: flex; flex-direction: column; gap: 0.4rem; }
+.table-card__actions form { margin: 0; }
+
+.badge {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  color: #fff;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+.badge--libre { background: #3a7d44; }
+.badge--reservada { background: #c98a1a; }
+.badge--ocupada { background: #b3261e; }
+
+.order-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+}
+.category-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  background: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  text-decoration: none;
+  color: inherit;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+.category-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.category-card__image {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+.category-card__name { font-weight: bold; }
+.category-card__destination {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #8a8a8a;
+}
+
+.menu-category { margin-bottom: 1.5rem; }
+.menu-product {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #e0dcd6;
+}
+.menu-product__name { flex: 1; }
+.menu-product__notes { width: 8rem; }
+.menu-product form { margin: 0; }
+
+.ticket {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  position: sticky;
+  top: 1rem;
+}
+.ticket-items { list-style: none; padding: 0; margin: 0; }
+.ticket-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #eee;
+  font-size: 0.9rem;
+}
+.ticket-item__notes { color: #777; font-style: italic; }
+.ticket-item__status { margin-left: auto; text-transform: uppercase; font-size: 0.7rem; }
+.ticket-item--listo { color: #3a7d44; }
+.ticket-item--servido { opacity: 0.5; }
+.ticket-total { font-weight: bold; margin: 1rem 0; }
+
+.kitchen-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+.kitchen-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.kitchen-header h1 { margin: 0; }
+.sound-status { margin-top: 0.25rem; color: #635b55; font-size: 0.85rem; }
+.kitchen-ticket {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+}
+.kitchen-ticket ul { list-style: none; padding: 0; }
+.kitchen-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+.kitchen-item__notes { color: #777; font-style: italic; }
+.kitchen-item form { margin-left: auto; }
+
+.filter-form { margin: 1rem 0; }
+.filter-form label { display: flex; align-items: center; gap: 0.5rem; }
+.filter-form select { padding: 0.4rem; font-size: 0.95rem; }
+
+.admin-menu { list-style: none; padding: 0; }
+.admin-menu li { margin-bottom: 0.5rem; }
+.admin-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+.admin-table th, .admin-table td { text-align: left; padding: 0.5rem; border-bottom: 1px solid #ddd; }
+.admin-form { display: flex; flex-direction: column; gap: 0.75rem; max-width: 400px; }
+.admin-form label { display: flex; flex-direction: column; gap: 0.25rem; }
+.admin-form .checkbox { flex-direction: row; align-items: center; }
+
+.thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+.image-preview {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 0.4rem;
+}
+.category-thumb {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 4px;
+  vertical-align: middle;
+  margin-right: 0.4rem;
+}
+.product-thumb {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+}

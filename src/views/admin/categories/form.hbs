@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+{{> nav}}
+<main class="container">
+  <p><a href="/admin/categories">&larr; Categorías</a></p>
+  <h1>{{title}}</h1>
+  <form class="admin-form" action="{{#if category}}/admin/categories/{{category.id}}{{else}}/admin/categories{{/if}}" method="post" enctype="multipart/form-data">
+    <label>Nombre
+      <input type="text" name="name" value="{{category.name}}" required>
+    </label>
+    <label>Destino
+      <select name="destination" required>
+        <option value="cocina" {{#if (eq category.destination "cocina")}}selected{{/if}}>Cocina</option>
+        <option value="barra" {{#if (eq category.destination "barra")}}selected{{/if}}>Barra</option>
+      </select>
+    </label>
+    <label>Orden
+      <input type="number" name="order" value="{{category.order}}">
+    </label>
+    <label>Foto
+      {{#if category.imageUrl}}
+      <img class="image-preview" src="{{category.imageUrl}}" alt="">
+      {{/if}}
+      <input type="file" name="image" accept="image/*">
+    </label>
+    <button type="submit">Guardar</button>
+  </form>
+</main>
+</body>
+</html>

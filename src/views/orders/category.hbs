@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+{{> nav}}
+<main class="container order-page">
+  <p><a href="/tables/{{table.id}}/order">&larr; Categorías</a></p>
+  <h1>{{table.name}} <span class="badge badge--{{table.status}}">{{table.status}}</span></h1>
+
+  <div class="order-layout">
+    <section class="menu">
+      <h2>
+        {{#if category.imageUrl}}<img class="category-thumb" src="{{category.imageUrl}}" alt="">{{/if}}
+        {{category.name}} <small>({{category.destination}})</small>
+      </h2>
+      <div class="menu-products">
+        {{#each products}}
+        <div class="menu-product">
+          {{#if this.imageUrl}}<img class="product-thumb" src="{{this.imageUrl}}" alt="">{{/if}}
+          <span class="menu-product__name">{{this.name}}</span>
+          <span class="menu-product__price">{{formatPrice this.price}}</span>
+          <input type="text" name="notes" form="add-{{this.id}}" placeholder="notas" class="menu-product__notes">
+          <form id="add-{{this.id}}" action="/tables/{{../table.id}}/order/items" method="post">
+            <input type="hidden" name="productId" value="{{this.id}}">
+            <button type="submit" class="button button--small">+1</button>
+          </form>
+          <form action="/tables/{{../table.id}}/order/products/{{this.id}}/decrementar" method="post">
+            <button type="submit" class="button button--small button--secondary">-1</button>
+          </form>
+        </div>
+        {{/each}}
+        {{#unless products.length}}
+        <p>No hay productos activos en esta categoría.</p>
+        {{/unless}}
+      </div>
+    </section>
+
+    {{> order_ticket}}
+  </div>
+</main>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+  socket.emit('join', 'waiters');
+  socket.on('waiter:itemReady', (data) => {
+    if (data.tableId === {{table.id}}) window.location.reload();
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -i -b /tmp/waiter.jar -X POST http://localhost:/tables/1/order/items -d \"productId=2&quantity=1&notes=\")",
+      "Bash(curl -s -i -b /tmp/waiter.jar -X POST http://localhost:3002/tables/1/order/items -d \"productId=9&quantity=2&notes=sin+tomate\")"
+    ]
+  }
+}

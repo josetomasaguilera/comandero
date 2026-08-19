@@ -1,0 +1,24 @@
+<header class="topbar">
+  <div class="topbar__brand">☕ Comandero</div>
+  {{#if currentUser}}
+  <nav class="topbar__nav">
+    {{#if (eq currentUser.role "waiter")}}
+    <a href="/tables">Mesas</a>
+    {{/if}}
+    {{#if (eq currentUser.role "kitchen")}}
+    <a href="/kitchen">Cocina</a>
+    {{/if}}
+    {{#if (eq currentUser.role "admin")}}
+    <a href="/tables">Mesas</a>
+    <a href="/kitchen">Cocina</a>
+    <a href="/admin">Administración</a>
+    {{/if}}
+  </nav>
+  <div class="topbar__user">
+    <span>{{currentUser.username}}</span>
+    <form action="/logout" method="post">
+      <button type="submit" class="link-button">Salir</button>
+    </form>
+  </div>
+  {{/if}}
+</header>
