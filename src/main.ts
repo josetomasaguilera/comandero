@@ -43,7 +43,7 @@ async function bootstrap() {
     password: config.get<string>('DB_PASSWORD'),
     database: config.get<string>('DB_DATABASE'),
   });
-console.log(config.get<string>('DB_PASSWORD'));
+
   const sessionMiddleware = session({
     store: new PgSession({ pool, createTableIfMissing: true }),
     secret: config.get<string>('SESSION_SECRET') ?? 'dev-secret',

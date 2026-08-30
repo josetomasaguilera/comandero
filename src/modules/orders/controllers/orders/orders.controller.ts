@@ -1,5 +1,6 @@
 import {
   Body,
+  BadRequestException,
   Controller,
   Get,
   NotFoundException,
@@ -22,6 +23,7 @@ import { CategoriesService } from '../../../categories/services/categories/categ
 import { ProductsService } from '../../../products/services/products/products.service';
 import { OrdersGateway } from '../../../events/orders.gateway';
 import { User } from '../../../users/entities/user.entity';
+import { VoiceOrderService } from '../../../voice-order/services/voice-order/voice-order.service';
 
 @Controller('tables/:tableId/order')
 @UseGuards(AuthenticatedGuard, RolesGuard)
@@ -33,6 +35,7 @@ export class OrdersController {
     private readonly categoriesService: CategoriesService,
     private readonly productsService: ProductsService,
     private readonly ordersGateway: OrdersGateway,
+    private readonly voiceOrderService: VoiceOrderService,
   ) {}
 
   @Get()
@@ -53,12 +56,61 @@ export class OrdersController {
       this.ordersGateway.notifyTableStatusChanged(barId);
     }
     const categories = await this.categoriesService.findAll(barId);
+    const voiceTables = await this.tablesService.findAll(barId);
 
     return {
       title: `Mesa ${table.name}`,
       table,
       order,
       categories,
+      voiceTables,
+      voiceOrderingEnabled: Boolean(waiter.bar?.voiceOrderingEnabled),
+    };
+  }
+
+  @Post('voice/interpret')
+  async interpretVoiceOrder(
+    @Param('tableId', ParseIntPipe) tableId: number,
+    @Body() body: { transcript?: string },
+    @Req() req: Request,
+  ) {
+    const user = req.user as User;
+    if (!user.bar?.voiceOrderingEnabled) {
+      throw new ForbiddenException('El módulo de pedidos por voz no está activo para este bar');
+    }
+    const barId = this.barIdFor(user);
+    const table = await this.tablesService.findOne(tableId, barId);
+    if (!table) {
+      throw new NotFoundException('Mesa no encontrada');
+    }
+    const transcript = body.transcript?.trim();
+    if (!transcript || transcript.length > 500) {
+      throw new BadRequestException('Comanda de voz no válida');
+    }
+
+    const [products, tables] = await Promise.all([
+      this.productsService.findActive(barId),
+      this.tablesService.findAll(barId),
+    ]);
+    const interpretation = await this.voiceOrderService.interpret(
+      transcript,
+      products,
+      tables,
+    );
+    const productsById = new Map(products.map((product) => [product.id, product]));
+    const items = interpretation.items.flatMap(({ productId, quantity, notes }) => {
+      const product = productsById.get(productId);
+      return product && Number.isInteger(quantity) && quantity > 0 && quantity <= 20 && typeof notes === 'string'
+        ? [{ id: product.id, name: product.name, quantity, notes: notes.trim().slice(0, 250) }]
+        : [];
+    });
+
+    const targetTable = tables.find((candidate) => candidate.id === interpretation.tableId);
+    return {
+      tableId: targetTable?.id ?? table.id,
+      tableName: targetTable?.name ?? table.name,
+      items,
+      unmatched: interpretation.unmatched,
     };
   }
 

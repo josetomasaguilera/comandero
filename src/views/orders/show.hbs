@@ -13,6 +13,29 @@
 
   <div class="order-layout">
     <section class="menu">
+      {{#if voiceOrderingEnabled}}
+      <section class="voice-order" aria-labelledby="voice-order-title">
+        <h2 id="voice-order-title">Tomar pedido por voz</h2>
+        <p>Di, por ejemplo: “dos cafés con leche para mesa 4”.</p>
+        <label class="voice-order__table">Mesa
+          <select id="voice-order-table">
+            {{#each voiceTables}}
+            <option value="{{this.id}}" {{#if (eq this.id ../table.id)}}selected{{/if}}>{{this.name}}</option>
+            {{/each}}
+          </select>
+        </label>
+        <button id="voice-order-start" type="button" class="button">🎙️ Hablar</button>
+        <p id="voice-order-status" class="voice-order__status" aria-live="polite"></p>
+        <div id="voice-order-preview" class="voice-order__preview" hidden>
+          <h3>Confirma el pedido</h3>
+          <ul id="voice-order-items"></ul>
+          <div class="voice-order__actions">
+            <button id="voice-order-confirm" type="button" class="button">Añadir al pedido</button>
+            <button id="voice-order-cancel" type="button" class="button button--secondary">Cancelar</button>
+          </div>
+        </div>
+      </section>
+      {{/if}}
       <h2>Categorías</h2>
       <div class="category-grid">
         {{#each categories}}
@@ -35,6 +58,124 @@
   socket.on('waiter:itemReady', (data) => {
     if (data.tableId === {{table.id}}) window.location.reload();
   });
+
+  const voiceStartButton = document.getElementById('voice-order-start');
+  if (voiceStartButton) {
+  const voiceStatus = document.getElementById('voice-order-status');
+  const voicePreview = document.getElementById('voice-order-preview');
+  const voiceItems = document.getElementById('voice-order-items');
+  const voiceConfirmButton = document.getElementById('voice-order-confirm');
+  const voiceCancelButton = document.getElementById('voice-order-cancel');
+  const voiceTableSelect = document.getElementById('voice-order-table');
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition;
+  let pendingVoiceItems = [];
+  let interpretingVoice = false;
+
+  function showPreview(items) {
+    pendingVoiceItems = items;
+    voiceItems.replaceChildren();
+    for (const item of items) {
+      const row = document.createElement('li');
+      row.textContent = item.notes
+        ? `${item.quantity} × ${item.name} (${item.notes})`
+        : `${item.quantity} × ${item.name}`;
+      voiceItems.appendChild(row);
+    }
+    voicePreview.hidden = false;
+  }
+
+  function clearPreview() {
+    pendingVoiceItems = [];
+    voicePreview.hidden = true;
+    voiceItems.replaceChildren();
+  }
+
+  if (!SpeechRecognition) {
+    voiceStartButton.disabled = true;
+    voiceStatus.textContent = 'Este navegador no permite el reconocimiento de voz.';
+  } else {
+    recognition = new SpeechRecognition();
+    recognition.lang = 'es-ES';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    voiceStartButton.addEventListener('click', () => {
+      clearPreview();
+      voiceStatus.textContent = 'Escuchando…';
+      voiceStartButton.disabled = true;
+      recognition.start();
+    });
+
+    recognition.addEventListener('result', async (event) => {
+      const transcript = event.results[0][0].transcript;
+      interpretingVoice = true;
+      voiceStatus.textContent = 'Interpretando el pedido…';
+      try {
+        const response = await fetch('/tables/{{table.id}}/order/voice/interpret', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transcript }),
+        });
+        if (!response.ok) throw new Error('No se ha podido interpretar el pedido');
+        const result = await response.json();
+        if (!result.items.length) {
+          voiceStatus.textContent = `No he reconocido productos en: “${transcript}”.`;
+          return;
+        }
+        voiceTableSelect.value = String(result.tableId);
+        voiceStatus.textContent = result.unmatched.length
+          ? `He entendido: “${transcript}” para ${result.tableName}. No he añadido: ${result.unmatched.join(', ')}.`
+          : `He entendido: “${transcript}” para ${result.tableName}.`;
+        showPreview(result.items);
+      } catch {
+        voiceStatus.textContent = 'No se ha podido interpretar el pedido por voz. Inténtalo de nuevo.';
+      } finally {
+        interpretingVoice = false;
+        voiceStartButton.disabled = false;
+      }
+    });
+
+    recognition.addEventListener('error', (event) => {
+      const messages = {
+        'not-allowed': 'No se ha concedido permiso para usar el micrófono.',
+        'no-speech': 'No se ha detectado voz. Inténtalo de nuevo.',
+      };
+      voiceStatus.textContent = messages[event.error] || 'No se ha podido reconocer el pedido.';
+    });
+
+    recognition.addEventListener('end', () => {
+      if (!interpretingVoice) voiceStartButton.disabled = false;
+    });
+  }
+
+  voiceCancelButton.addEventListener('click', clearPreview);
+  voiceConfirmButton.addEventListener('click', async () => {
+    if (!pendingVoiceItems.length) return;
+    voiceConfirmButton.disabled = true;
+    voiceCancelButton.disabled = true;
+    voiceStatus.textContent = 'Añadiendo productos al pedido…';
+    try {
+      for (const item of pendingVoiceItems) {
+        const response = await fetch(`/tables/${voiceTableSelect.value}/order/items`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            productId: item.id,
+            quantity: String(item.quantity),
+            notes: item.notes || '',
+          }),
+        });
+        if (!response.ok) throw new Error('No se ha podido añadir el pedido');
+      }
+      window.location.reload();
+    } catch {
+      voiceStatus.textContent = 'No se ha podido añadir el pedido. Inténtalo de nuevo.';
+      voiceConfirmButton.disabled = false;
+      voiceCancelButton.disabled = false;
+    }
+  });
+  }
 </script>
 </body>
 </html>

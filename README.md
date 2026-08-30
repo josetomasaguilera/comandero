@@ -11,6 +11,17 @@ Aplicación de comandas para una cafetería, construida con NestJS (patrón MVC,
 - Node.js y npm
 - PostgreSQL accesible (por defecto `localhost:5432`)
 
+### Reconocimiento inteligente de pedidos por voz
+
+Para interpretar comandas mediante IA, añade esta variable en el entorno del servidor (nunca en código cliente):
+
+```env
+OPENAI_API_KEY=tu_clave_de_api
+# Opcional: OPENAI_VOICE_ORDER_MODEL=gpt-5.4
+```
+
+Sin esta clave, el botón de voz seguirá transcribiendo, pero no podrá interpretar la comanda.
+
 ## Puesta en marcha
 
 1. Copia `.env.example` a `.env` y ajusta las credenciales de tu Postgres.

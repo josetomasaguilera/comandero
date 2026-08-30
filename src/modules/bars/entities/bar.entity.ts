@@ -7,4 +7,7 @@ export class Bar {
 
   @Column({ unique: true })
   name: string;
+
+  @Column({ default: false })
+  voiceOrderingEnabled: boolean;
 }

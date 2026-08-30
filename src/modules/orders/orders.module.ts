@@ -9,6 +9,7 @@ import { TablesModule } from '../tables/tables.module';
 import { CategoriesModule } from '../categories/categories.module';
 import { ProductsModule } from '../products/products.module';
 import { EventsModule } from '../events/events.module';
+import { VoiceOrderModule } from '../voice-order/voice-order.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { EventsModule } from '../events/events.module';
     CategoriesModule,
     ProductsModule,
     EventsModule,
+    VoiceOrderModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService],

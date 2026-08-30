@@ -149,6 +149,21 @@ body {
   color: #8a8a8a;
 }
 
+.voice-order {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+.voice-order h2, .voice-order h3 { margin-top: 0; }
+.voice-order p { margin: 0.4rem 0 0.8rem; }
+.voice-order__table { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem; }
+.voice-order__table select { padding: 0.35rem; font-size: 0.9rem; }
+.voice-order__status { min-height: 1.2rem; color: #635b55; font-size: 0.85rem; }
+.voice-order__preview { border-top: 1px solid #e0dcd6; margin-top: 0.8rem; padding-top: 0.8rem; }
+.voice-order__preview ul { margin: 0 0 0.8rem; padding-left: 1.2rem; }
+.voice-order__actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
 .menu-category { margin-bottom: 1.5rem; }
 .menu-product {
   display: flex;
