@@ -63,4 +63,4 @@ Cada dominio vive en `src/modules/<nombre>` con `entities/`, `services/` y `cont
    gcloud run services update comandero `
   --region=europe-west3 `
   --project=linaje-504114 `
-  --set-env-vars="DB_HOST=34.40.74.30,DB_PORT=5432,DB_USERNAME=postgres,DB_DATABASE=comandero,DB_SSL=false,DB_PASSWORD=@Tomas1968"
+  --set-env-vars="DB_HOST=34.40.74.30,DB_PORT=5432,DB_USERNAME=postgres,DB_DATABASE=comandero,DB_SSL=false,DB_PASSWORD=@Tomas1968
