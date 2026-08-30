@@ -59,6 +59,7 @@ body {
 .login-form label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.9rem; }
 .login-form input { padding: 0.5rem; font-size: 1rem; }
 .login-form .error { color: #b3261e; }
+.login-form__register { margin: 0.5rem 0 0; font-size: 0.85rem; text-align: center; }
 
 .button {
   display: inline-block;

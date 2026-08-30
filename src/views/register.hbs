@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+{{#if redirectTo}}
+<script>window.location.href = "{{redirectTo}}";</script>
+{{else}}
+<div class="login-page">
+  <form class="login-form" action="/register" method="post">
+    <h1>☕ Crea tu bar</h1>
+    <p>Configura tu cafetería y crea la cuenta de administrador.</p>
+    {{#if error}}
+    <p class="error">{{error}}</p>
+    {{/if}}
+    <label>Nombre del bar o cafetería
+      <input type="text" name="barName" maxlength="100" required autofocus>
+    </label>
+    <label>Usuario administrador
+      <input type="text" name="username" maxlength="100" autocomplete="username" required>
+    </label>
+    <label>Contraseña
+      <input type="password" name="password" minlength="8" autocomplete="new-password" required>
+    </label>
+    <label>Repite la contraseña
+      <input type="password" name="passwordConfirmation" minlength="8" autocomplete="new-password" required>
+    </label>
+    <button type="submit">Crear mi bar</button>
+    <p class="login-form__register">¿Ya tienes cuenta? <a href="/login">Inicia sesión</a></p>
+  </form>
+</div>
+{{/if}}
+</body>
+</html>
