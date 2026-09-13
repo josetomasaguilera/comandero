@@ -1,7 +1,7 @@
 import { Controller, Get, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthService } from './modules/auth/services/auth/auth.service';
-import { User } from './modules/users/entities/user.entity';
+import { User } from './modules/users/entities/user.schema';
 
 @Controller()
 export class AppController {

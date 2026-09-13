@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Order } from './entities/order.entity';
-import { OrderItem } from './entities/order-item.entity';
-import { Product } from '../products/entities/product.entity';
+import { MongooseModule } from '@nestjs/mongoose';
+import { Order, OrderSchema } from './entities/order.schema';
+import { OrderItem, OrderItemSchema } from './entities/order-item.schema';
+import { Product, ProductSchema } from '../products/entities/product.schema';
 import { OrdersService } from './services/orders/orders.service';
 import { OrdersController } from './controllers/orders/orders.controller';
 import { TablesModule } from '../tables/tables.module';
@@ -13,7 +13,11 @@ import { VoiceOrderModule } from '../voice-order/voice-order.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Order, OrderItem, Product]),
+    MongooseModule.forFeature([
+      { name: Order.name, schema: OrderSchema },
+      { name: OrderItem.name, schema: OrderItemSchema },
+      { name: Product.name, schema: ProductSchema },
+    ]),
     TablesModule,
     CategoriesModule,
     ProductsModule,

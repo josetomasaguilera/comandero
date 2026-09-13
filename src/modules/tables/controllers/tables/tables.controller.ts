@@ -15,7 +15,7 @@ import { RolesGuard } from '../../../auth/guards/roles.guard';
 import { Roles } from '../../../auth/decorators/roles.decorator';
 import { TablesService } from '../../services/tables/tables.service';
 import { OrdersGateway } from '../../../events/orders.gateway';
-import { User } from '../../../users/entities/user.entity';
+import { User } from '../../../users/entities/user.schema';
 import { ForbiddenException } from '@nestjs/common';
 
 @Controller('tables')

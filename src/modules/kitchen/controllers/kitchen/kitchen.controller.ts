@@ -16,7 +16,7 @@ import { RolesGuard } from '../../../auth/guards/roles.guard';
 import { Roles } from '../../../auth/decorators/roles.decorator';
 import { OrdersService } from '../../../orders/services/orders/orders.service';
 import { OrdersGateway } from '../../../events/orders.gateway';
-import { User } from '../../../users/entities/user.entity';
+import { User } from '../../../users/entities/user.schema';
 
 @Controller('kitchen')
 @UseGuards(AuthenticatedGuard, RolesGuard)

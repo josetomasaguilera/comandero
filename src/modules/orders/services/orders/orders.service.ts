@@ -1,173 +1,84 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
-import { Order } from '../../entities/order.entity';
-import { OrderItem, OrderItemStatus } from '../../entities/order-item.entity';
-import { Product } from '../../../products/entities/product.entity';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Order } from '../../entities/order.schema';
+import { OrderItem, OrderItemStatus } from '../../entities/order-item.schema';
+import { Product } from '../../../products/entities/product.schema';
+import { IdGeneratorService } from '../../../database/id-generator.service';
 import { TablesService } from '../../../tables/services/tables/tables.service';
 
 @Injectable()
 export class OrdersService {
   constructor(
-    @InjectRepository(Order)
-    private readonly ordersRepository: Repository<Order>,
-    @InjectRepository(OrderItem)
-    private readonly orderItemsRepository: Repository<OrderItem>,
-    @InjectRepository(Product)
-    private readonly productsRepository: Repository<Product>,
-    private readonly tablesService: TablesService,
+    @InjectModel(Order.name) private readonly orders: Model<Order>,
+    @InjectModel(OrderItem.name) private readonly items: Model<OrderItem>,
+    @InjectModel(Product.name) private readonly products: Model<Product>,
+    private readonly ids: IdGeneratorService,
+    private readonly tables: TablesService,
   ) {}
 
   findOpenOrderForTable(tableId: number, barId: number): Promise<Order | null> {
-    return this.ordersRepository.findOne({
-      where: { tableId, barId, status: 'abierto' },
-      order: { id: 'DESC' },
-    });
+    return this.orders
+      .findOne({ tableId, barId, status: 'abierto' })
+      .sort({ id: -1 })
+      .populate({ path: 'items', populate: { path: 'product' } })
+      .populate('table')
+      .exec();
   }
-
   async openOrderForTable(tableId: number, waiterId: number, barId: number): Promise<Order> {
-    const table = await this.tablesService.findOne(tableId, barId);
-    if (!table) {
-      throw new NotFoundException('Mesa no encontrada');
-    }
+    if (!(await this.tables.findOne(tableId, barId))) throw new NotFoundException('Mesa no encontrada');
     const existing = await this.findOpenOrderForTable(tableId, barId);
-    if (existing) {
-      return existing;
-    }
-    const order = await this.ordersRepository.save(
-      this.ordersRepository.create({ tableId, waiterId, barId, status: 'abierto' }),
-    );
-    await this.tablesService.setStatus(tableId, barId, 'ocupada');
-    return { ...order, items: [] };
+    if (existing) return existing;
+    const order = await this.orders.create({ id: await this.ids.next('orders'), tableId, waiterId, barId, status: 'abierto' });
+    await this.tables.setStatus(tableId, barId, 'ocupada');
+    return Object.assign(order, { items: [] });
   }
-
   async findOrderWithItems(orderId: number, barId: number): Promise<Order> {
-    const order = await this.ordersRepository.findOne({
-      where: { id: orderId, barId },
-    });
-    if (!order) {
-      throw new NotFoundException('Pedido no encontrado');
-    }
+    const order = await this.orders
+      .findOne({ id: orderId, barId })
+      .populate({ path: 'items', populate: { path: 'product' } })
+      .populate('table')
+      .exec();
+    if (!order) throw new NotFoundException('Pedido no encontrado');
     return order;
   }
-
-  async addItem(
-    orderId: number,
-    productId: number,
-    quantity: number,
-    notes: string | null,
-    barId: number,
-  ): Promise<OrderItem> {
+  async addItem(orderId: number, productId: number, quantity: number, notes: string | null, barId: number): Promise<OrderItem> {
     const normalizedNotes = notes || null;
-    const existing = await this.orderItemsRepository.findOne({
-      where: {
-        orderId,
-        productId,
-        notes: normalizedNotes ?? IsNull(),
-        status: 'pendiente',
-        barId,
-      },
-    });
-    if (existing) {
-      existing.quantity += quantity;
-      return this.orderItemsRepository.save(existing);
-    }
-
-    const product = await this.productsRepository.findOne({
-      where: { id: productId, barId },
-    });
-    if (!product) {
-      throw new NotFoundException('Producto no encontrado');
-    }
-    return this.orderItemsRepository.save(
-      this.orderItemsRepository.create({
-        orderId,
-        productId,
-        quantity,
-        notes: normalizedNotes,
-        destination: product.category.destination,
-        status: 'pendiente',
-        barId,
-      }),
-    );
+    const existing = await this.items.findOne({ orderId, productId, notes: normalizedNotes, status: 'pendiente', barId }).exec();
+    if (existing) { existing.quantity += quantity; return existing.save(); }
+    const product = await this.products.findOne({ id: productId, barId }).populate('category').exec();
+    if (!product?.category) throw new NotFoundException('Producto no encontrado');
+    return this.items.create({ id: await this.ids.next('orderItems'), orderId, productId, quantity, notes: normalizedNotes, destination: product.category.destination, status: 'pendiente', barId });
   }
-
   async incrementQuantity(itemId: number, barId: number): Promise<OrderItem> {
-    const item = await this.orderItemsRepository.findOne({
-      where: { id: itemId, barId },
-      relations: { order: true },
-    });
-    if (!item) {
-      throw new NotFoundException('Línea de pedido no encontrada');
-    }
-    item.quantity += 1;
-    return this.orderItemsRepository.save(item);
+    const item = await this.item(itemId, barId); item.quantity += 1; return item.save();
   }
-
-  async decrementQuantity(itemId: number, barId: number): Promise<{ item: OrderItem; deleted: boolean }> {
-    const item = await this.orderItemsRepository.findOne({
-      where: { id: itemId, barId },
-      relations: { order: true },
-    });
-    if (!item) {
-      throw new NotFoundException('Línea de pedido no encontrada');
-    }
-    return this.applyDecrement(item);
+  async decrementQuantity(itemId: number, barId: number) { return this.decrement(await this.item(itemId, barId)); }
+  async decrementProductInOrder(orderId: number, productId: number, barId: number) {
+    const item = await this.items.findOne({ orderId, productId, barId }).sort({ id: -1 }).exec();
+    return item ? this.decrement(item) : null;
   }
-
-  async decrementProductInOrder(
-    orderId: number,
-    productId: number,
-    barId: number,
-  ): Promise<{ item: OrderItem; deleted: boolean } | null> {
-    const item = await this.orderItemsRepository.findOne({
-      where: { orderId, productId, barId },
-      relations: { order: true },
-      order: { id: 'DESC' },
-    });
-    if (!item) {
-      return null;
-    }
-    return this.applyDecrement(item);
+  private async item(id: number, barId: number) {
+    const item = await this.items.findOne({ id, barId }).populate('order').exec();
+    if (!item) throw new NotFoundException('Línea de pedido no encontrada');
+    return item;
   }
-
-  private async applyDecrement(
-    item: OrderItem,
-  ): Promise<{ item: OrderItem; deleted: boolean }> {
-    if (item.quantity <= 1) {
-      await this.orderItemsRepository.remove(item);
-      return { item, deleted: true };
-    }
-    item.quantity -= 1;
-    await this.orderItemsRepository.save(item);
-    return { item, deleted: false };
+  private async decrement(item: any) {
+    if (item.quantity <= 1) { await this.items.deleteOne({ id: item.id }).exec(); return { item, deleted: true }; }
+    item.quantity -= 1; await item.save(); return { item, deleted: false };
   }
-
   async setItemStatus(itemId: number, barId: number, status: OrderItemStatus): Promise<OrderItem> {
-    const item = await this.orderItemsRepository.findOne({
-      where: { id: itemId, barId },
-      relations: { order: true },
-    });
-    if (!item) {
-      throw new NotFoundException('Línea de pedido no encontrada');
-    }
-    item.status = status;
-    return this.orderItemsRepository.save(item);
+    const item = await this.item(itemId, barId); item.status = status; return item.save();
   }
-
   async closeOrder(orderId: number, barId: number): Promise<void> {
-    const order = await this.findOrderWithItems(orderId, barId);
-    order.status = 'cerrado';
-    order.closedAt = new Date();
-    await this.ordersRepository.save(order);
-    await this.tablesService.setStatus(order.tableId, barId, 'libre');
+    const order = await this.findOrderWithItems(orderId, barId); order.status = 'cerrado'; order.closedAt = new Date(); await (order as any).save(); await this.tables.setStatus(order.tableId, barId, 'libre');
   }
-
   findKitchenPendingItems(barId: number): Promise<OrderItem[]> {
-    return this.orderItemsRepository.find({
-      where: { barId, destination: 'cocina', status: 'pendiente' },
-      relations: { order: { table: true } },
-      order: { id: 'ASC' },
-    });
+    return this.items
+      .find({ barId, destination: 'cocina', status: 'pendiente' })
+      .sort({ id: 1 })
+      .populate('product')
+      .populate({ path: 'order', populate: { path: 'table' } })
+      .exec();
   }
 }

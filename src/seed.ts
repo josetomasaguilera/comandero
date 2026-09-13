@@ -1,102 +1,37 @@
 import { NestFactory } from '@nestjs/core';
-import { getRepositoryToken } from '@nestjs/typeorm';
+import { getModelToken } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
-import { Repository } from 'typeorm';
+import { Model } from 'mongoose';
 import { AppModule } from './app.module';
-import { User } from './modules/users/entities/user.entity';
-import { Table, TableZone } from './modules/tables/entities/table.entity';
-import { Category } from './modules/categories/entities/category.entity';
-import { Product } from './modules/products/entities/product.entity';
-import { Bar } from './modules/bars/entities/bar.entity';
+import { IdGeneratorService } from './modules/database/id-generator.service';
+import { Bar } from './modules/bars/entities/bar.schema';
+import { User } from './modules/users/entities/user.schema';
+import { Table, TableZone } from './modules/tables/entities/table.schema';
+import { Category } from './modules/categories/entities/category.schema';
+import { Product } from './modules/products/entities/product.schema';
 
 async function seed() {
   const app = await NestFactory.createApplicationContext(AppModule);
-
-  const usersRepo = app.get<Repository<User>>(getRepositoryToken(User));
-  const barsRepo = app.get<Repository<Bar>>(getRepositoryToken(Bar));
-  const tablesRepo = app.get<Repository<Table>>(getRepositoryToken(Table));
-  const categoriesRepo = app.get<Repository<Category>>(
-    getRepositoryToken(Category),
-  );
-  const productsRepo = app.get<Repository<Product>>(
-    getRepositoryToken(Product),
-  );
-  const bar = await barsRepo.findOneByOrFail({ name: 'Bar principal' });
-
-  const existingTables = await tablesRepo.count();
-  if (existingTables === 0) {
-    const zones: { zone: TableZone; label: string }[] = [
-      { zone: 'interior', label: 'Interior' },
-      { zone: 'terraza_a', label: 'Terraza A' },
-      { zone: 'terraza_b', label: 'Terraza B' },
-    ];
-    for (const { zone, label } of zones) {
-      for (let i = 1; i <= 4; i++) {
-        await tablesRepo.save(
-          tablesRepo.create({ name: `${label} ${i}`, zone, status: 'libre', barId: bar.id }),
-        );
-      }
-    }
-    console.log('Mesas creadas: 12');
+  const ids = app.get(IdGeneratorService);
+  const bars = app.get<Model<Bar>>(getModelToken(Bar.name));
+  const users = app.get<Model<User>>(getModelToken(User.name));
+  const tables = app.get<Model<Table>>(getModelToken(Table.name));
+  const categories = app.get<Model<Category>>(getModelToken(Category.name));
+  const products = app.get<Model<Product>>(getModelToken(Product.name));
+  let bar = await bars.findOne({ name: 'Mi cafetería' }).exec();
+  if (!bar) bar = await bars.create({ id: await ids.next('bars'), name: 'Mi cafetería' });
+  if (!await tables.exists({ barId: bar.id })) {
+    const zones: { zone: TableZone; label: string }[] = [{ zone: 'interior', label: 'Interior' }, { zone: 'terraza_a', label: 'Terraza A' }, { zone: 'terraza_b', label: 'Terraza B' }];
+    for (const { zone, label } of zones) for (let i = 1; i <= 4; i++) await tables.create({ id: await ids.next('tables'), name: `${label} ${i}`, zone, status: 'libre', barId: bar.id });
   }
-
-  const existingUsers = await usersRepo.count();
-  if (existingUsers === 0) {
-    const users = [
-      { username: 'admin', password: 'admin123', role: 'admin' as const },
-      { username: 'camarero', password: 'camarero123', role: 'waiter' as const },
-      { username: 'cocina', password: 'cocina123', role: 'kitchen' as const },
-    ];
-    for (const u of users) {
-      const passwordHash = await bcrypt.hash(u.password, 10);
-      await usersRepo.save(
-        usersRepo.create({ username: u.username, passwordHash, role: u.role, barId: bar.id }),
-      );
-    }
-    console.log('Usuarios creados: admin/admin123, camarero/camarero123, cocina/cocina123');
+  if (!await users.exists({ barId: bar.id })) for (const user of [{ username: 'admin', role: 'admin' as const, password: 'admin123' }, { username: 'camarero', role: 'waiter' as const, password: 'camarero123' }, { username: 'cocina', role: 'kitchen' as const, password: 'cocina123' }]) await users.create({ id: await ids.next('users'), username: user.username, role: user.role, passwordHash: await bcrypt.hash(user.password, 10), barId: bar.id });
+  if (!await categories.exists({ barId: bar.id })) {
+    const categoryData = [['Cafés', 1, 'barra'], ['Bebidas', 2, 'barra'], ['Bollería', 3, 'barra'], ['Tostas', 4, 'cocina'], ['Platos combinados', 5, 'cocina']] as const;
+    const created = new Map<string, Category>();
+    for (const [name, order, destination] of categoryData) created.set(name, await categories.create({ id: await ids.next('categories'), name, order, destination, barId: bar.id }));
+    const data = [['Café solo', 1.30, 'Cafés'], ['Café con leche', 1.60, 'Cafés'], ['Cortado', 1.50, 'Cafés'], ['Agua mineral', 1.50, 'Bebidas'], ['Refresco', 2.00, 'Bebidas'], ['Zumo natural', 2.50, 'Bebidas'], ['Croissant', 1.80, 'Bollería'], ['Napolitana de chocolate', 1.90, 'Bollería'], ['Tosta de tomate y jamón', 3.50, 'Tostas'], ['Tosta de aguacate', 3.80, 'Tostas'], ['Plato combinado 1 (huevo, bacon, patatas)', 7.50, 'Platos combinados'], ['Plato combinado 2 (pollo, ensalada, patatas)', 8.00, 'Platos combinados']] as const;
+    for (const [name, price, categoryName] of data) await products.create({ id: await ids.next('products'), name, price, active: true, categoryId: created.get(categoryName)!.id, barId: bar.id });
   }
-
-  const existingCategories = await categoriesRepo.count();
-  if (existingCategories === 0) {
-    const categories = await categoriesRepo.save([
-      categoriesRepo.create({ name: 'Cafés', order: 1, destination: 'barra', barId: bar.id }),
-      categoriesRepo.create({ name: 'Bebidas', order: 2, destination: 'barra', barId: bar.id }),
-      categoriesRepo.create({ name: 'Bollería', order: 3, destination: 'barra', barId: bar.id }),
-      categoriesRepo.create({ name: 'Tostas', order: 4, destination: 'cocina', barId: bar.id }),
-      categoriesRepo.create({ name: 'Platos combinados', order: 5, destination: 'cocina', barId: bar.id }),
-    ]);
-    console.log('Categorías creadas:', categories.length);
-
-    const byName = Object.fromEntries(categories.map((c) => [c.name, c]));
-    const products = [
-      { name: 'Café solo', price: '1.30', categoryId: byName['Cafés'].id },
-      { name: 'Café con leche', price: '1.60', categoryId: byName['Cafés'].id },
-      { name: 'Cortado', price: '1.50', categoryId: byName['Cafés'].id },
-      { name: 'Agua mineral', price: '1.50', categoryId: byName['Bebidas'].id },
-      { name: 'Refresco', price: '2.00', categoryId: byName['Bebidas'].id },
-      { name: 'Zumo natural', price: '2.50', categoryId: byName['Bebidas'].id },
-      { name: 'Croissant', price: '1.80', categoryId: byName['Bollería'].id },
-      { name: 'Napolitana de chocolate', price: '1.90', categoryId: byName['Bollería'].id },
-      { name: 'Tosta de tomate y jamón', price: '3.50', categoryId: byName['Tostas'].id },
-      { name: 'Tosta de aguacate', price: '3.80', categoryId: byName['Tostas'].id },
-      { name: 'Plato combinado 1 (huevo, bacon, patatas)', price: '7.50', categoryId: byName['Platos combinados'].id },
-      { name: 'Plato combinado 2 (pollo, ensalada, patatas)', price: '8.00', categoryId: byName['Platos combinados'].id },
-    ];
-    for (const p of products) {
-      await productsRepo.save(productsRepo.create({ ...p, active: true, barId: bar.id }));
-    }
-    console.log('Productos creados:', products.length);
-  }
-
   await app.close();
 }
-
-seed()
-  .then(() => {
-    console.log('Seed completado.');
-    process.exit(0);
-  })
-  .catch((err) => {
-    console.error('Error en el seed:', err);
-    process.exit(1);
-  });
+seed().then(() => process.exit(0)).catch((err) => { console.error(err); process.exit(1); });

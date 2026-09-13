@@ -1,7 +1,7 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Product } from '../../../products/entities/product.entity';
-import { Table } from '../../../tables/entities/table.entity';
+import { Product } from '../../../products/entities/product.schema';
+import { Table } from '../../../tables/entities/table.schema';
 
 type VoiceOrderInterpretation = {
   tableId: number;

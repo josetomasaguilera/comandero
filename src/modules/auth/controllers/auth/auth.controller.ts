@@ -12,7 +12,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
 import { AuthService } from '../../services/auth/auth.service';
-import { User } from '../../../users/entities/user.entity';
+import { User } from '../../../users/entities/user.schema';
 import { LocalAuthGuard } from '../../guards/local-auth.guard';
 import { BarsService } from '../../../bars/services/bars/bars.service';
 

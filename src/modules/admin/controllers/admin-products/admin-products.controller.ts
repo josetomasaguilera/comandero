@@ -23,7 +23,7 @@ import { Roles } from '../../../auth/decorators/roles.decorator';
 import { ProductsService } from '../../../products/services/products/products.service';
 import { CategoriesService } from '../../../categories/services/categories/categories.service';
 import { imageUploadOptions, uploadedImageUrl } from '../../../../common/upload.util';
-import { User } from '../../../users/entities/user.entity';
+import { User } from '../../../users/entities/user.schema';
 
 @Controller('admin/products')
 @UseGuards(AuthenticatedGuard, RolesGuard)
@@ -67,7 +67,7 @@ export class AdminProductsController {
     if (!category) throw new NotFoundException('Categoría no encontrada');
     await this.productsService.create(barId, {
       name: body.name,
-      price: body.price,
+      price: Number(body.price),
       categoryId: Number(body.categoryId),
       active: body.active === 'on',
       imageUrl: uploadedImageUrl('products', image) ?? null,
@@ -102,7 +102,7 @@ export class AdminProductsController {
     if (!category) throw new NotFoundException('Categoría no encontrada');
     await this.productsService.update(id, barId, {
       name: body.name,
-      price: body.price,
+      price: Number(body.price),
       categoryId: Number(body.categoryId),
       active: body.active === 'on',
       ...(imageUrl ? { imageUrl } : {}),

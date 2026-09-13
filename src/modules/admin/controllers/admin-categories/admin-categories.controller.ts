@@ -19,9 +19,9 @@ import { AuthenticatedGuard } from '../../../auth/guards/authenticated.guard';
 import { RolesGuard } from '../../../auth/guards/roles.guard';
 import { Roles } from '../../../auth/decorators/roles.decorator';
 import { CategoriesService } from '../../../categories/services/categories/categories.service';
-import { CategoryDestination } from '../../../categories/entities/category.entity';
+import { CategoryDestination } from '../../../categories/entities/category.schema';
 import { imageUploadOptions, uploadedImageUrl } from '../../../../common/upload.util';
-import { User } from '../../../users/entities/user.entity';
+import { User } from '../../../users/entities/user.schema';
 
 @Controller('admin/categories')
 @UseGuards(AuthenticatedGuard, RolesGuard)

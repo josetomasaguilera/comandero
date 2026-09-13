@@ -1,24 +1,25 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from '../../entities/user.entity';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { User } from '../../entities/user.schema';
+import { IdGeneratorService } from '../../../database/id-generator.service';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User)
-    private readonly usersRepository: Repository<User>,
+    @InjectModel(User.name) private readonly usersRepository: Model<User>,
+    private readonly ids: IdGeneratorService,
   ) {}
 
   findByUsername(username: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { username } });
+    return this.usersRepository.findOne({ username }).populate('bar').exec();
   }
 
   findById(id: number): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { id } });
+    return this.usersRepository.findOne({ id }).populate('bar').exec();
   }
 
-  create(user: Partial<User>): Promise<User> {
-    return this.usersRepository.save(this.usersRepository.create(user));
+  async create(user: Partial<User>): Promise<User> {
+    return this.usersRepository.create({ ...user, id: await this.ids.next('users') });
   }
 }

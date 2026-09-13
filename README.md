@@ -1,6 +1,6 @@
 # Comandero
 
-Aplicación de comandas para una cafetería, construida con NestJS (patrón MVC, vistas Handlebars) y PostgreSQL (TypeORM).
+Aplicación de comandas para una cafetería, construida con NestJS (patrón MVC, vistas Handlebars) y MongoDB Atlas (Mongoose).
 
 - El **camarero** ve las mesas (4 interior, 4 terraza A, 4 terraza B) con su estado (`libre`, `reservada`, `ocupada`), abre una mesa y añade productos organizados por categoría.
 - Los productos de categorías con destino `cocina` llegan en tiempo real (WebSockets) a la vista de **cocina**, donde el cocinero (login propio) sólo ve esos platos.
@@ -9,7 +9,7 @@ Aplicación de comandas para una cafetería, construida con NestJS (patrón MVC,
 ## Requisitos
 
 - Node.js y npm
-- PostgreSQL accesible (por defecto `localhost:5432`)
+- Un clúster de MongoDB Atlas y una cadena de conexión
 
 ### Reconocimiento inteligente de pedidos por voz
 
@@ -24,8 +24,15 @@ Sin esta clave, el botón de voz seguirá transcribiendo, pero no podrá interpr
 
 ## Puesta en marcha
 
-1. Copia `.env.example` a `.env` y ajusta las credenciales de tu Postgres.
-2. Crea la base de datos indicada en `DB_DATABASE` (por defecto `comandero`).
+1. Crea `.env` con estas variables:
+
+   ```env
+   MONGODB_URI=mongodb+srv://USUARIO:CONTRASENA@CLUSTER.mongodb.net/?retryWrites=true&w=majority
+   MONGODB_DB=comandero
+   SESSION_SECRET=una_clave_larga_y_aleatoria
+   ```
+
+   En Atlas, añade la IP del servidor a Network Access y crea el usuario de base de datos.
 3. Instala dependencias:
 
    ```bash
@@ -50,7 +57,7 @@ Sin esta clave, el botón de voz seguirá transcribiendo, pero no podrá interpr
 
 ## Estructura
 
-Cada dominio vive en `src/modules/<nombre>` con `entities/`, `services/` y `controllers/` (TypeORM + Nest). Las vistas Handlebars están en `src/views`, los estáticos (CSS) en `src/public`. El estado en tiempo real (nuevos pedidos a cocina, platos listos) se transmite vía Socket.IO (`src/modules/events`).
+Cada dominio vive en `src/modules/<nombre>` con `entities/`, `services/` y `controllers/` (Mongoose + Nest). Las vistas Handlebars están en `src/views`, los estáticos (CSS) en `src/public`. El estado en tiempo real (nuevos pedidos a cocina, platos listos) se transmite vía Socket.IO (`src/modules/events`).
 
 ## Scripts
 
@@ -60,7 +67,6 @@ Cada dominio vive en `src/modules/<nombre>` con `entities/`, `services/` y `cont
 
 - `gcloud run deploy comandero` - despliegue en gcloud (una vez hecho el build)
    ó
-   gcloud run services update comandero `
-  --region=europe-west3 `
-  --project=linaje-504114 `
-  --set-env-vars="DB_HOST=34.40.74.30,DB_PORT=5432,DB_USERNAME=postgres,DB_DATABASE=comandero,DB_SSL=false,DB_PASSWORD=@Tomas1968
+   gcloud run services update comandero --region=europe-west3 
+  --project=linaje-504114 
+  --set-env-vars="MONGODB_DB=comandero"

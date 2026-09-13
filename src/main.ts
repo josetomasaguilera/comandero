@@ -6,20 +6,19 @@ import { join } from 'path';
 import hbs = require('hbs');
 import session from 'express-session';
 import passport = require('passport');
-import { Pool } from 'pg';
-import connectPgSimple from 'connect-pg-simple';
+import MongoStore from 'connect-mongo';
 import { Request, Response, NextFunction } from 'express';
 import { AuthRedirectFilter } from './modules/auth/filters/auth-redirect.filter';
-import { User } from './modules/users/entities/user.entity';
+import { User } from './modules/users/entities/user.schema';
 import { setSessionMiddleware } from './common/session-middleware';
 
 hbs.registerHelper('eq', (a: unknown, b: unknown) => a === b);
 hbs.registerHelper('formatPrice', (value: string | number) =>
   Number(value).toFixed(2).replace('.', ',') + ' €',
 );
-hbs.registerHelper('total', (items: { product: { price: string }; quantity: number }[]) => {
+hbs.registerHelper('total', (items: { product?: { price?: string }; quantity: number }[]) => {
   const total = (items ?? []).reduce(
-    (sum, item) => sum + Number(item.product.price) * item.quantity,
+    (sum, item) => sum + Number(item.product?.price ?? 0) * item.quantity,
     0,
   );
   return total.toFixed(2).replace('.', ',') + ' €';
@@ -35,17 +34,8 @@ async function bootstrap() {
 
   hbs.registerPartials(join(__dirname, 'views', 'partials'));
 
-  const PgSession = connectPgSimple(session);
-  const pool = new Pool({
-    host: config.get<string>('DB_HOST'),
-    port: config.get<number>('DB_PORT'),
-    user: config.get<string>('DB_USERNAME'),
-    password: config.get<string>('DB_PASSWORD'),
-    database: config.get<string>('DB_DATABASE'),
-  });
-
   const sessionMiddleware = session({
-    store: new PgSession({ pool, createTableIfMissing: true }),
+    store: MongoStore.create({ mongoUrl: config.getOrThrow<string>('MONGODB_URI'), dbName: config.get<string>('MONGODB_DB') || undefined }),
     secret: config.get<string>('SESSION_SECRET') ?? 'dev-secret',
     resave: false,
     saveUninitialized: false,

@@ -22,7 +22,7 @@ import { TablesService } from '../../../tables/services/tables/tables.service';
 import { CategoriesService } from '../../../categories/services/categories/categories.service';
 import { ProductsService } from '../../../products/services/products/products.service';
 import { OrdersGateway } from '../../../events/orders.gateway';
-import { User } from '../../../users/entities/user.entity';
+import { User } from '../../../users/entities/user.schema';
 import { VoiceOrderService } from '../../../voice-order/services/voice-order/voice-order.service';
 
 @Controller('tables/:tableId/order')
@@ -133,7 +133,6 @@ export class OrdersController {
     }
     const order = await this.ordersService.openOrderForTable(tableId, waiter.id, barId);
     const products = await this.productsService.findActiveByCategory(barId, categoryId);
-
     return {
       title: `Mesa ${table.name} · ${category.name}`,
       table,

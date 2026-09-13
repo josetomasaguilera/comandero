@@ -1,17 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Table, TableStatus, TableZone } from '../../entities/table.entity';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Table, TableStatus, TableZone } from '../../entities/table.schema';
 
 @Injectable()
 export class TablesService {
   constructor(
-    @InjectRepository(Table)
-    private readonly tablesRepository: Repository<Table>,
+    @InjectModel(Table.name) private readonly tablesRepository: Model<Table>,
   ) {}
 
   findAll(barId: number): Promise<Table[]> {
-    return this.tablesRepository.find({ where: { barId }, order: { id: 'ASC' } });
+    return this.tablesRepository.find({ barId }).sort({ id: 1 }).exec();
   }
 
   async findAllGroupedByZone(barId: number): Promise<Record<TableZone, Table[]>> {
@@ -24,10 +23,10 @@ export class TablesService {
   }
 
   findOne(id: number, barId: number): Promise<Table | null> {
-    return this.tablesRepository.findOne({ where: { id, barId } });
+    return this.tablesRepository.findOne({ id, barId }).exec();
   }
 
   async setStatus(id: number, barId: number, status: TableStatus): Promise<void> {
-    await this.tablesRepository.update({ id, barId }, { status });
+    await this.tablesRepository.updateOne({ id, barId }, { status }).exec();
   }
 }
