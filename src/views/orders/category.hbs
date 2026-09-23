@@ -21,10 +21,10 @@
       <div class="menu-products">
         {{#each products}}
         <div class="menu-product">
+          <div class="menu-product__row">
           {{#if this.imageUrl}}<img class="product-thumb" src="{{this.imageUrl}}" alt="">{{/if}}
           <span class="menu-product__name">{{this.name}}</span>
-          <span class="menu-product__price">{{formatPrice this.price}}</span>
-          <input type="text" name="notes" form="add-{{this.id}}" placeholder="notas" class="menu-product__notes">
+          <div class="menu-product__controls">
           <form id="add-{{this.id}}" action="/tables/{{../table.id}}/order/items" method="post">
             <input type="hidden" name="productId" value="{{this.id}}">
             <button type="submit" class="button button--small">+1</button>
@@ -32,6 +32,10 @@
           <form action="/tables/{{../table.id}}/order/products/{{this.id}}/decrementar" method="post">
             <button type="submit" class="button button--small button--secondary">-1</button>
           </form>
+          </div>
+          <span class="menu-product__price">{{formatPrice this.price}}</span>
+          </div>
+          <input type="text" name="notes" form="add-{{this.id}}" placeholder="notas" aria-label="Notas para {{this.name}}" class="menu-product__notes">
         </div>
         {{/each}}
         {{#unless products.length}}
