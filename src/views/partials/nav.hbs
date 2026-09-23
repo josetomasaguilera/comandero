@@ -1,5 +1,10 @@
 <header class="topbar">
+  <div class="topbar__identity">
   <div class="topbar__brand">☕ {{#if currentBar}}{{currentBar.name}}{{else}}Comandero{{/if}}</div>
+  {{#if currentUser}}
+  <div class="topbar__user">{{currentUser.username}}</div>
+  {{/if}}
+  </div>
   {{#if currentUser}}
   <nav class="topbar__nav">
     {{#if (eq currentUser.role "waiter")}}
@@ -13,12 +18,9 @@
     <a href="/kitchen">Cocina</a>
     <a href="/admin">Administración</a>
     {{/if}}
-  </nav>
-  <div class="topbar__user">
-    <span>{{currentUser.username}}</span>
-    <form action="/logout" method="post">
+    <form class="topbar__logout" action="/logout" method="post">
       <button type="submit" class="link-button">Salir</button>
     </form>
-  </div>
+  </nav>
   {{/if}}
 </header>

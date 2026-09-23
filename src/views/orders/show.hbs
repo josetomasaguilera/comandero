@@ -9,8 +9,10 @@
 <body>
 {{> nav}}
 <main class="container order-page">
-  <p><a href="/tables">&larr; Volver a mesas</a></p>
-  <h1>{{table.name}} <span class="badge badge--{{table.status}}">{{table.status}}</span></h1>
+  <div class="order-page__header">
+    <a href="/tables">&larr; Volver a mesas</a>
+    <h1>{{table.name}} <span class="badge badge--{{table.status}}">{{table.status}}</span></h1>
+  </div>
 
   <div class="order-layout">
     <section class="menu">

@@ -15,20 +15,23 @@ body {
 }
 .topbar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: stretch;
   background: #2b2420;
   color: #fff;
-  padding: 0.75rem 1.5rem;
+  padding: 0.35rem 1.5rem 0;
 }
-.topbar__brand { font-weight: bold; font-size: 1.1rem; }
+.topbar__identity { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-width: 0; }
+.topbar__brand { flex: 1 1 0; font-weight: bold; font-size: 1.1rem; }
+.topbar__brand, .topbar__user { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; }
 .topbar__nav a {
   color: #fff;
   margin-right: 1rem;
   text-decoration: none;
 }
 .topbar__nav a:hover { text-decoration: underline; }
-.topbar__user { display: flex; align-items: center; gap: 0.75rem; }
+.topbar__user { flex: 0 1 auto; text-align: right; max-width: 40%; }
+.topbar__logout { flex-shrink: 0; margin: 0 0 0 auto; }
 
 .link-button {
   background: none;
@@ -115,6 +118,16 @@ body {
 .badge--reservada { background: #c98a1a; }
 .badge--ocupada { background: #b3261e; }
 
+.order-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.order-page__header > a { flex-shrink: 0; }
+.order-page__header h1 { margin: 0; min-width: 0; text-align: right; }
+
 .order-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -177,7 +190,6 @@ body {
   border-bottom: 1px solid #e0dcd6;
 }
 .menu-product__name { flex: 1; }
-.menu-product__notes { width: 8rem; }
 .menu-product form { margin: 0; }
 
 .ticket {
@@ -278,11 +290,11 @@ input:not([type="hidden"]):not([type="checkbox"]), select, textarea {
 }
 input[type="checkbox"] { width: 1.25rem; height: 1.25rem; }
 :focus-visible { outline: 3px solid #bc791d; outline-offset: 3px; }
-.topbar { flex-wrap: wrap; gap: 0.5rem 1rem; }
 .topbar__brand, .topbar__user, .order-layout > *, .menu-product__name { min-width: 0; }
-.topbar__nav { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }
+.topbar__nav { display: flex; align-items: center; flex-wrap: nowrap; gap: 0 1rem; min-width: 0; overflow-x: auto; }
+.topbar__nav a { flex-shrink: 0; white-space: nowrap; }
 .topbar__nav a { display: inline-flex; align-items: center; margin: 0; }
-.topbar__user form, .ticket-item form { margin: 0; flex-shrink: 0; }
+.ticket-item form { margin: 0; flex-shrink: 0; }
 .tables-grid { grid-template-columns: repeat(auto-fill, minmax(min(160px, 100%), 1fr)); }
 .category-grid { grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr)); }
 .kitchen-board { grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); }
@@ -298,7 +310,20 @@ input[type="checkbox"] { width: 1.25rem; height: 1.25rem; }
   flex: 0 0 auto;
   min-width: 0;
 }
-.menu-product__notes { width: 10rem; min-width: 0; }
+.menu-product__notes-button { align-self: flex-end; color: #6f4e37; }
+.notes-dialog {
+  width: min(460px, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  border: 0;
+  border-radius: 8px;
+  padding: 1.25rem;
+  color: #2b2420;
+}
+.notes-dialog::backdrop { background: rgba(0, 0, 0, 0.5); }
+.notes-dialog h2 { margin-top: 0; }
+.notes-dialog textarea { display: block; width: 100%; margin: 0.5rem 0 1rem; resize: vertical; }
+.notes-dialog__actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 0.5rem; }
 .menu-product__controls form { flex: 0 0 auto; }
 .menu-product__controls .button { min-width: 44px; }
 .product-thumb, .ticket-item__qty, .kitchen-item__qty { flex-shrink: 0; }
@@ -317,7 +342,7 @@ input[type="checkbox"] { width: 1.25rem; height: 1.25rem; }
   .container { padding: 1.25rem; }
   .order-layout { grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
   .ticket { position: static; }
-  .topbar { padding: 0.75rem 1.25rem; }
+  .topbar { padding: 0.35rem 1.25rem 0; }
 }
 
 /* Smartphones: compact navigation and full-width primary actions. */
@@ -325,10 +350,9 @@ input[type="checkbox"] { width: 1.25rem; height: 1.25rem; }
   .container { padding: 1rem; }
   h1 { font-size: 1.6rem; }
   h2 { font-size: 1.25rem; }
-  .topbar { padding: 0.75rem 1rem; }
-  .topbar__brand { flex: 1 1 100%; }
-  .topbar__nav { flex: 1 1 100%; gap: 0.25rem 1rem; }
-  .topbar__user { width: 100%; justify-content: space-between; }
+  .topbar { padding: 0.35rem 1rem 0; }
+  .topbar__identity { gap: 0.5rem; }
+  .topbar__nav { gap: 0 0.6rem; font-size: 0.9rem; }
   .login-form { padding: 1.25rem; }
   .tables-grid, .category-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
   .table-card, .category-card { padding: 0.75rem; }

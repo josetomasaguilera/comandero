@@ -9,8 +9,10 @@
 <body>
 {{> nav}}
 <main class="container order-page">
-  <p><a href="/tables/{{table.id}}/order">&larr; Categorías</a></p>
-  <h1>{{table.name}} <span class="badge badge--{{table.status}}">{{table.status}}</span></h1>
+  <div class="order-page__header">
+    <a href="/tables/{{table.id}}/order">&larr; Categorías</a>
+    <h1>{{table.name}} <span class="badge badge--{{table.status}}">{{table.status}}</span></h1>
+  </div>
 
   <div class="order-layout">
     <section class="menu">
@@ -27,6 +29,7 @@
           <div class="menu-product__controls">
           <form id="add-{{this.id}}" action="/tables/{{../table.id}}/order/items" method="post">
             <input type="hidden" name="productId" value="{{this.id}}">
+            <input type="hidden" name="notes" id="notes-{{this.id}}" value="">
             <button type="submit" class="button button--small">+1</button>
           </form>
           <form action="/tables/{{../table.id}}/order/products/{{this.id}}/decrementar" method="post">
@@ -35,7 +38,7 @@
           </div>
           <span class="menu-product__price">{{formatPrice this.price}}</span>
           </div>
-          <input type="text" name="notes" form="add-{{this.id}}" placeholder="notas" aria-label="Notas para {{this.name}}" class="menu-product__notes">
+          <button type="button" class="link-button menu-product__notes-button" data-notes-target="notes-{{this.id}}" data-product-name="{{this.name}}" aria-haspopup="dialog" aria-controls="notes-dialog">Añadir notas</button>
         </div>
         {{/each}}
         {{#unless products.length}}
@@ -47,6 +50,19 @@
     {{> order_ticket}}
   </div>
 </main>
+<dialog id="notes-dialog" class="notes-dialog" aria-labelledby="notes-dialog-title">
+  <form id="notes-dialog-form">
+    <h2 id="notes-dialog-title">Notas del producto</h2>
+    <p id="notes-product-name"></p>
+    <label for="notes-text">Notas</label>
+    <textarea id="notes-text" rows="4" placeholder="Por ejemplo: sin cebolla" autofocus></textarea>
+    <div class="notes-dialog__actions">
+      <button type="button" id="notes-cancel" class="button button--secondary">Cancelar</button>
+      <button type="submit" class="button">Guardar notas</button>
+    </div>
+  </form>
+</dialog>
+<script src="/js/order-notes.js" defer></script>
 <script src="/socket.io/socket.io.js"></script>
 <script>
   const socket = io();
