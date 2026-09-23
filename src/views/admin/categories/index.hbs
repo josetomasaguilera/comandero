@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta charset="UTF-8">
   <title>{{title}}</title>
   <link rel="stylesheet" href="/css/style.css">
@@ -11,6 +12,7 @@
   <p><a href="/admin">&larr; Administración</a></p>
   <h1>Categorías</h1>
   <a class="button" href="/admin/categories/new">Nueva categoría</a>
+  <div class="table-scroll" role="region" aria-label="Categorías" tabindex="0">
   <table class="admin-table">
     <thead>
       <tr><th>Foto</th><th>Nombre</th><th>Destino</th><th>Orden</th><th></th></tr>
@@ -32,6 +34,7 @@
       {{/each}}
     </tbody>
   </table>
+  </div>
 </main>
 </body>
 </html>

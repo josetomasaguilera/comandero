@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta charset="UTF-8">
   <title>{{title}}</title>
   <link rel="stylesheet" href="/css/style.css">
@@ -22,6 +23,7 @@
     </label>
     <noscript><button type="submit">Filtrar</button></noscript>
   </form>
+  <div class="table-scroll" role="region" aria-label="Productos" tabindex="0">
   <table class="admin-table">
     <thead>
       <tr><th>Foto</th><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Activo</th><th></th></tr>
@@ -44,6 +46,7 @@
       {{/each}}
     </tbody>
   </table>
+  </div>
 </main>
 </body>
 </html>
