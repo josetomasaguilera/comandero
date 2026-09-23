@@ -8,8 +8,6 @@ import { Category } from '../../../categories/entities/category.schema';
 import { Product } from '../../../products/entities/product.schema';
 import { IdGeneratorService } from '../../../database/id-generator.service';
 
-const TEMPLATE_BAR_ID = 2;
-
 @Injectable()
 export class BarsService implements OnModuleInit {
   constructor(
@@ -26,13 +24,13 @@ export class BarsService implements OnModuleInit {
     if (!bar) bar = await this.bars.create({ id: await this.ids.next('bars'), name: 'Mi cafetería' });
   }
 
-  async createBarWithAdmin(name: string, username: string, passwordHash: string): Promise<User> {
+  async createBarWithAdmin(name: string, username: string, passwordHash: string, email: string): Promise<User> {
     const [existingBar, existingUser] = await Promise.all([
       this.bars.findOne({ name }).exec(), this.users.findOne({ username }).exec(),
     ]);
     if (existingBar) throw new ConflictException('Ya existe un bar con ese nombre');
     if (existingUser) throw new ConflictException('Ese usuario ya está en uso');
-    const template = await this.bars.findOne({ id: TEMPLATE_BAR_ID }).exec();
+    const template = await this.bars.findOne({ id: Number(process.env.TEMPLATE_BAR_ID)}).exec();
     if (!template) throw new NotFoundException('No se encontró el bar plantilla');
 
     const bar = await this.bars.create({ id: await this.ids.next('bars'), name });
@@ -53,6 +51,6 @@ export class BarsService implements OnModuleInit {
     for (const table of sourceTables) {
       await this.tables.create({ id: await this.ids.next('tables'), name: table.name, zone: table.zone, status: 'libre', barId: bar.id });
     }
-    return this.users.create({ id: await this.ids.next('users'), username, passwordHash, role: 'admin', barId: bar.id });
+    return this.users.create({ id: await this.ids.next('users'), username, email, passwordHash, role: 'admin', barId: bar.id });
   }
 }

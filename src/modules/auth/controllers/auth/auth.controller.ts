@@ -10,6 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { isEmail } from 'class-validator';
 import { Request, Response } from 'express';
 import { AuthService } from '../../services/auth/auth.service';
 import { User } from '../../../users/entities/user.schema';
@@ -42,6 +43,7 @@ export class AuthController {
     }
     const errors: Record<string, string> = {
       fields: 'Completa todos los campos.',
+      email: 'Introduce un email válido.',
       password: 'La contraseña debe tener al menos 8 caracteres.',
       confirmation: 'Las contraseñas no coinciden.',
       exists: 'El nombre del bar o el usuario ya están en uso.',
@@ -56,6 +58,7 @@ export class AuthController {
     body: {
       barName?: string;
       username?: string;
+      email?: string;
       password?: string;
       passwordConfirmation?: string;
     },
@@ -64,8 +67,13 @@ export class AuthController {
   ) {
     const barName = body.barName?.trim();
     const username = body.username?.trim();
-    if (!barName || !username || !body.password) {
+    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+    if (!barName || !username || !email || !body.password) {
       res.redirect('/register?error=fields');
+      return;
+    }
+    if (!isEmail(email)) {
+      res.redirect('/register?error=email');
       return;
     }
     if (body.password.length < 8) {
@@ -84,6 +92,7 @@ export class AuthController {
         barName,
         username,
         passwordHash,
+        email,
       );
     } catch (error) {
       if (error instanceof ConflictException) {

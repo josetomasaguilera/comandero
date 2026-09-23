@@ -65,8 +65,22 @@ Cada dominio vive en `src/modules/<nombre>` con `entities/`, `services/` y `cont
 - `npm run build` / `npm run start:prod` — build y ejecución en producción
 - `npm run seed` — datos de prueba
 
-- `gcloud run deploy comandero` - despliegue en gcloud (una vez hecho el build)
-   ó
-   gcloud run services update comandero --region=europe-west3 
-  --project=linaje-504114 
-  --set-env-vars="MONGODB_DB=comandero"
+## Despliegue en Cloud Run
+
+Configura `MONGODB_URI`, `MONGODB_DB` y `SESSION_SECRET` en el entorno de Cloud Run. El archivo `.env` local no configura las variables del servicio. Configura también `OPENAI_API_KEY` si utilizas la interpretación de pedidos por voz.
+
+Para desplegar desde el directorio actual (Cloud Build compila el proyecto):
+
+```powershell
+gcloud run deploy comandero --source . --region=europe-southwest1 --project=linaje-504114 --env-vars-file=.env
+```
+
+Para cambiar únicamente el nombre de la base de datos, sin reconstruir la imagen:
+
+```powershell
+gcloud run services update comandero --region=europe-southwest1 --project=linaje-504114 --env-vars-file=.env
+```
+
+Usa `--update-env-vars` para conservar las demás variables. `--set-env-vars` elimina las variables existentes que no se incluyan en el comando. Si ya se han eliminado, restaura sus valores o referencias a secretos antes de volver a desplegar; `--update-env-vars` no las recupera automáticamente.
+
+Si aparece el error de arranque en `PORT=8080`, consulta los logs de la revisión. La aplicación ya utiliza `PORT`, pero necesita `MONGODB_URI` y conectarse a MongoDB antes de escuchar. El error `Configuration key "MONGODB_URI" does not exist` indica que falta esa variable en Cloud Run.

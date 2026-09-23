@@ -5,6 +5,7 @@ export type UserRole = 'admin' | 'waiter' | 'kitchen';
 export class User {
   @Prop({ required: true, unique: true }) id: number;
   @Prop({ required: true, unique: true }) username: string;
+  @Prop({ trim: true, lowercase: true }) email?: string;
   @Prop({ required: true }) passwordHash: string;
   @Prop({ required: true, enum: ['admin', 'waiter', 'kitchen'] }) role: UserRole;
   @Prop({ required: true, index: true }) barId: number;

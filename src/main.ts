@@ -54,6 +54,12 @@ async function bootstrap() {
 
   app.useGlobalFilters(new AuthRedirectFilter());
 
-  await app.listen(config.get<number>('PORT') ?? 3002);
+  const port = Number(process.env.PORT || 8080);
+
+  console.log('process.env.PORT =', process.env.PORT);
+  console.log('Puerto utilizado =', port);
+
+  await app.listen(port, '0.0.0.0');
+
 }
 bootstrap();
