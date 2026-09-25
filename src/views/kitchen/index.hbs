@@ -11,9 +11,7 @@
 <main class="container">
   <div class="kitchen-header">
     <h1>Cocina</h1>
-    <button id="enable-sound" type="button" class="button button--secondary">Activar sonido</button>
   </div>
-  <p id="sound-status" class="sound-status" aria-live="polite">Las alertas sonoras están desactivadas.</p>
   <div class="kitchen-board">
     {{#each tables}}
     <section class="kitchen-ticket">
@@ -40,23 +38,26 @@
 <script src="/socket.io/socket.io.js"></script>
 <script>
   const socket = io();
-  const enableSoundButton = document.getElementById('enable-sound');
-  const soundStatus = document.getElementById('sound-status');
   let audioContext;
-  let soundEnabled = localStorage.getItem('kitchenSoundEnabled') === 'true';
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
 
-  function updateSoundStatus() {
-    enableSoundButton.textContent = soundEnabled ? 'Sonido activado' : 'Activar sonido';
-    enableSoundButton.classList.toggle('button--secondary', !soundEnabled);
-    soundStatus.textContent = soundEnabled
-      ? 'Las alertas sonoras están activadas.'
-      : 'Las alertas sonoras están desactivadas.';
+  function prepareSound() {
+    if (!AudioContextClass) return;
+    try {
+      if (!audioContext || audioContext.state === 'closed') {
+        audioContext = new AudioContextClass();
+      }
+      if (audioContext.state !== 'running') {
+        audioContext.resume().catch(() => {});
+      }
+    } catch {
+      // Keep alerts enabled and retry on the next user interaction.
+    }
   }
 
   function playKitchenSound(type) {
-    if (!soundEnabled) return;
-
-    audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+    prepareSound();
+    if (!audioContext) return;
     const startTone = () => {
       const isNewOrder = type === 'new';
       const notes = isNewOrder
@@ -80,25 +81,22 @@
       });
     };
 
-    if (audioContext.state === 'suspended') {
-      audioContext.resume().then(startTone).catch(() => {
-        soundEnabled = false;
-        localStorage.removeItem('kitchenSoundEnabled');
-        updateSoundStatus();
-      });
+    if (audioContext.state !== 'running') {
+      audioContext.resume().then(() => {
+        if (audioContext.state === 'running') startTone();
+      }).catch(() => {});
       return;
     }
     startTone();
   }
 
-  enableSoundButton.addEventListener('click', () => {
-    soundEnabled = true;
-    localStorage.setItem('kitchenSoundEnabled', 'true');
-    playKitchenSound('new');
-    updateSoundStatus();
+  document.addEventListener('click', prepareSound);
+  document.addEventListener('touchend', prepareSound, { passive: true });
+  document.addEventListener('keydown', prepareSound);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) prepareSound();
   });
-
-  updateSoundStatus();
+  prepareSound();
   socket.emit('join', { barId: {{currentBar.id}}, role: 'kitchen' });
   socket.on('kitchen:newItems', () => {
     playKitchenSound('new');
