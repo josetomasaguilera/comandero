@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+{{> nav}}
+<main class="container">
+  <p><a href="/admin">&larr; Administración</a></p>
+  <h1>Usuarios</h1>
+  {{#if error}}<p role="alert">{{error}}</p>{{/if}}
+  <a class="button" href="/admin/users/new">Nuevo usuario</a>
+  <div class="table-scroll" role="region" aria-label="Usuarios del bar" tabindex="0">
+    <table class="admin-table">
+      <thead><tr><th>Usuario</th><th>Email</th><th>Rol</th><th>Acciones</th></tr></thead>
+      <tbody>
+      {{#each users}}
+        <tr>
+          <td>{{this.username}}{{#if (eq this.id ../currentUser.id)}} (tú){{/if}}</td>
+          <td>{{#if this.email}}{{this.email}}{{else}}—{{/if}}</td>
+          <td>{{#if (eq this.role "admin")}}Administrador{{/if}}{{#if (eq this.role "waiter")}}Camarero{{/if}}{{#if (eq this.role "kitchen")}}Cocina{{/if}}</td>
+          <td>
+            <a href="/admin/users/{{this.id}}/edit">Editar</a>
+            {{#unless (eq this.id ../currentUser.id)}}
+            <form action="/admin/users/{{this.id}}/delete" method="post" style="display:inline" onsubmit="return confirm('¿Eliminar este usuario? Ya no podrá acceder al bar.');">
+              <button type="submit" class="link-button">Eliminar</button>
+            </form>
+            {{/unless}}
+          </td>
+        </tr>
+      {{else}}
+        <tr><td colspan="4">No hay usuarios.</td></tr>
+      {{/each}}
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>

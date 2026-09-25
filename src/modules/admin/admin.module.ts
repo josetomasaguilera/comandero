@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { UsersModule } from '../users/users.module';
+import { AdminUsersController } from './controllers/admin-users/admin-users.controller';
 import { CategoriesModule } from '../categories/categories.module';
 import { ProductsModule } from '../products/products.module';
 import { AdminController } from './controllers/admin/admin.controller';
@@ -6,7 +8,7 @@ import { AdminCategoriesController } from './controllers/admin-categories/admin-
 import { AdminProductsController } from './controllers/admin-products/admin-products.controller';
 
 @Module({
-  imports: [CategoriesModule, ProductsModule],
-  controllers: [AdminController, AdminCategoriesController, AdminProductsController],
+  imports: [CategoriesModule, ProductsModule, UsersModule],
+  controllers: [AdminController, AdminCategoriesController, AdminProductsController, AdminUsersController],
 })
 export class AdminModule {}

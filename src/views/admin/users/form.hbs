@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+{{> nav}}
+<main class="container">
+  <p><a href="/admin/users">&larr; Usuarios</a></p>
+  <h1>{{title}}</h1>
+  {{#if error}}<p role="alert">{{error}}</p>{{/if}}
+  <form class="admin-form" action="{{#if editing}}/admin/users/{{account.id}}{{else}}/admin/users{{/if}}" method="post">
+    <label>Usuario
+      <input name="username" value="{{account.username}}" maxlength="100" autocomplete="off" required>
+    </label>
+    <label>Email (opcional)
+      <input type="email" name="email" value="{{account.email}}" maxlength="254" autocomplete="off">
+    </label>
+    {{#if isSelf}}
+      <input type="hidden" name="role" value="admin">
+      <p>Rol: Administrador. No puedes cambiar el rol de tu propia cuenta.</p>
+    {{else}}
+    <label>Rol
+      <select name="role" required>
+        <option value="waiter" {{#if (eq account.role "waiter")}}selected{{/if}}>Camarero</option>
+        <option value="kitchen" {{#if (eq account.role "kitchen")}}selected{{/if}}>Cocina</option>
+        <option value="admin" {{#if (eq account.role "admin")}}selected{{/if}}>Administrador</option>
+      </select>
+    </label>
+    {{/if}}
+    {{#if editing}}<p>Deja la contraseña vacía para conservar la actual.</p>{{/if}}
+    <label>{{#if editing}}Nueva contraseña{{else}}Contraseña{{/if}}
+      <input type="password" name="password" minlength="8" maxlength="72" autocomplete="new-password" {{#unless editing}}required{{/unless}}>
+    </label>
+    <label>Repite la contraseña
+      <input type="password" name="passwordConfirmation" minlength="8" maxlength="72" autocomplete="new-password" {{#unless editing}}required{{/unless}}>
+    </label>
+    <button class="button" type="submit">Guardar usuario</button>
+    <a href="/admin/users">Cancelar</a>
+  </form>
+</main>
+</body>
+</html>
