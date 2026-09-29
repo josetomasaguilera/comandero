@@ -25,6 +25,18 @@ export class OrdersService {
       .populate('table')
       .exec();
   }
+  findRecentClosed(barId: number): Promise<Order[]> {
+    return this.orders.find({ barId, status: 'cerrado' })
+      .sort({ closedAt: -1, id: -1 }).limit(50)
+      .populate('table').exec();
+  }
+
+  async findClosed(id: number, barId: number): Promise<Order> {
+    const order = await this.orders.findOne({ id, barId, status: 'cerrado' })
+      .populate('table').populate({ path: 'items', populate: { path: 'product' } }).exec();
+    if (!order) throw new NotFoundException('Orden cerrada no encontrada');
+    return order;
+  }
   async openOrderForTable(tableId: number, waiterId: number, barId: number): Promise<Order> {
     if (!(await this.tables.findOne(tableId, barId))) throw new NotFoundException('Mesa no encontrada');
     const existing = await this.findOpenOrderForTable(tableId, barId);

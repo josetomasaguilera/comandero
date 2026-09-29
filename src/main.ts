@@ -15,10 +15,16 @@ import { BillingService } from './modules/billing/billing.service';
 import { subscriptionMiddleware } from './modules/billing/billing.middleware';
 
 hbs.registerHelper('eq', (a: unknown, b: unknown) => a === b);
+hbs.registerHelper('formatDate', (value: Date | string | null) => value
+  ? new Date(value).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : '—');
 hbs.registerHelper('formatPrice', (value: string | number) =>
   Number(value).toFixed(2).replace('.', ',') + ' €',
 );
 hbs.registerHelper('extrasPrice', (cents: number) => (Number(cents) / 100).toFixed(2).replace('.', ',') + ' €');
+hbs.registerHelper('unitPrice', (item: { product?: { price?: number }; extrasCents?: number }) =>
+  (Math.round(Number(item.product?.price ?? 0) * 100) + (item.extrasCents ?? 0)) / 100);
+hbs.registerHelper('lineTotal', (item: { product?: { price?: number }; extrasCents?: number; quantity: number }) =>
+  (Math.round(Number(item.product?.price ?? 0) * 100) + (item.extrasCents ?? 0)) * item.quantity / 100);
 hbs.registerHelper('total', (items: { product?: { price?: string }; quantity: number; extrasCents?: number }[]) => {
   const total = (items ?? []).reduce(
     (sum, item) => sum + (Math.round(Number(item.product?.price ?? 0) * 100) + (item.extrasCents ?? 0)) * item.quantity / 100,
