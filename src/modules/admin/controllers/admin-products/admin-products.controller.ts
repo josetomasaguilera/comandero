@@ -50,15 +50,21 @@ export class AdminProductsController {
 
   @Get('new')
   @Render('admin/products/form')
-  async new(@Req() req: Request) {
-    return { title: 'Nuevo producto', categories: await this.categoriesService.findAll(this.barIdFor(req.user as User)) };
+  async new(@Req() req: Request, @Query('categoryId') categoryId?: string) {
+    const selectedCategoryId = this.filterCategoryId(categoryId);
+    return {
+      title: 'Nuevo producto',
+      categories: await this.categoriesService.findAll(this.barIdFor(req.user as User)),
+      selectedCategoryId,
+      formCategoryId: selectedCategoryId,
+    };
   }
 
   @Post()
   @UseInterceptors(FileInterceptor('image', imageUploadOptions('products')))
   async create(
     @Body()
-    body: { name: string; price: string; cost?: string; categoryId: string; active?: string },
+    body: { name: string; price: string; cost?: string; categoryId: string; active?: string; selectedCategoryId?: string },
     @UploadedFile() image: Express.Multer.File | undefined,
     @Res() res: Response,
     @Req() req: Request,
@@ -68,22 +74,25 @@ export class AdminProductsController {
     if (!category) throw new NotFoundException('Categoría no encontrada');
     await this.productsService.create(barId, {
       name: body.name,
-      price: Number(body.price),
+      price: this.parsePrice(body.price),
       cost: this.parseCost(body.cost),
       categoryId: Number(body.categoryId),
       active: body.active === 'on',
       imageUrl: uploadedImageUrl('products', image) ?? null,
     });
-    res.redirect('/admin/products');
+    res.redirect(this.productsUrl(body.selectedCategoryId));
   }
 
   @Get(':id/edit')
   @Render('admin/products/form')
-  async edit(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
+  async edit(@Param('id', ParseIntPipe) id: number, @Req() req: Request, @Query('categoryId') categoryId?: string) {
     const barId = this.barIdFor(req.user as User);
+    const product = await this.productsService.findOne(id, barId);
     return {
       title: 'Editar producto',
-      product: await this.productsService.findOne(id, barId),
+      product,
+      formCategoryId: product?.categoryId,
+      selectedCategoryId: this.filterCategoryId(categoryId),
       categories: await this.categoriesService.findAll(barId),
     };
   }
@@ -93,7 +102,7 @@ export class AdminProductsController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body()
-    body: { name: string; price: string; cost?: string; categoryId: string; active?: string },
+    body: { name: string; price: string; cost?: string; categoryId: string; active?: string; selectedCategoryId?: string },
     @UploadedFile() image: Express.Multer.File | undefined,
     @Res() res: Response,
     @Req() req: Request,
@@ -104,19 +113,37 @@ export class AdminProductsController {
     if (!category) throw new NotFoundException('Categoría no encontrada');
     await this.productsService.update(id, barId, {
       name: body.name,
-      price: Number(body.price),
+      price: this.parsePrice(body.price),
       cost: this.parseCost(body.cost),
       categoryId: Number(body.categoryId),
       active: body.active === 'on',
       ...(imageUrl ? { imageUrl } : {}),
     });
-    res.redirect('/admin/products');
+    res.redirect(this.productsUrl(body.selectedCategoryId));
   }
 
   @Post(':id/delete')
   async remove(@Param('id', ParseIntPipe) id: number, @Res() res: Response, @Req() req: Request) {
     await this.productsService.remove(id, this.barIdFor(req.user as User));
     res.redirect('/admin/products');
+  }
+
+  private filterCategoryId(value?: string): number | undefined {
+    const id = typeof value === 'string' ? Number(value) : NaN;
+    return Number.isSafeInteger(id) && id > 0 ? id : undefined;
+  }
+
+  private productsUrl(categoryId?: string): string {
+    const id = this.filterCategoryId(categoryId);
+    return id ? `/admin/products?categoryId=${id}` : '/admin/products';
+  }
+
+  private parsePrice(value: string): number {
+    const normalized = typeof value === 'string' ? value.trim().replace(',', '.') : '';
+    if (!/^\d+(\.\d{1,2})?$/.test(normalized) || !Number.isSafeInteger(Math.round(Number(normalized) * 100))) {
+      throw new BadRequestException('El precio debe ser un importe no negativo con un máximo de dos decimales');
+    }
+    return Number(normalized);
   }
 
   private parseCost(value?: string): number {

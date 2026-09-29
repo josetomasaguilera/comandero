@@ -9,14 +9,15 @@
 <body>
 {{> nav}}
 <main class="container">
-  <p><a href="/admin/products">&larr; Productos</a></p>
+  <p><a href="/admin/products{{#if selectedCategoryId}}?categoryId={{selectedCategoryId}}{{/if}}">&larr; Productos</a></p>
   <h1>{{title}}</h1>
   <form class="admin-form" action="{{#if product}}/admin/products/{{product.id}}{{else}}/admin/products{{/if}}" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="selectedCategoryId" value="{{selectedCategoryId}}">
     <label>Nombre
       <input type="text" name="name" value="{{product.name}}" required>
     </label>
     <label>Precio
-      <input type="text" name="price" value="{{product.price}}" required>
+      <input type="text" name="price" inputmode="decimal" value="{{product.price}}" pattern="[0-9]+([.,][0-9]{1,2})?" title="Importe no negativo con hasta dos decimales" required>
     </label>
     <label>Coste por unidad (€)
       <input type="text" name="cost" inputmode="decimal" value="{{#if product.cost}}{{product.cost}}{{else}}0{{/if}}" pattern="[0-9]+([.,][0-9]{1,2})?" title="Importe no negativo con hasta dos decimales">
@@ -24,7 +25,7 @@
     <label>Categoría
       <select name="categoryId" required>
         {{#each categories}}
-        <option value="{{this.id}}" {{#if (eq this.id ../product.categoryId)}}selected{{/if}}>{{this.name}}</option>
+        <option value="{{this.id}}" {{#if (eq this.id ../formCategoryId)}}selected{{/if}}>{{this.name}}</option>
         {{/each}}
       </select>
     </label>

@@ -11,7 +11,7 @@
 <main class="container">
   <p><a href="/admin">&larr; Administración</a></p>
   <h1>Productos</h1>
-  <a class="button" href="/admin/products/new">Nuevo producto</a>
+  <a class="button" href="/admin/products/new{{#if selectedCategoryId}}?categoryId={{selectedCategoryId}}{{/if}}">Nuevo producto</a>
   <form class="filter-form" action="/admin/products" method="get">
     <label>Categoría
       <select name="categoryId" onchange="this.form.submit()">
@@ -38,7 +38,7 @@
         <td>{{#if this.cost}}{{formatPrice this.cost}}{{else}}0,00 €{{/if}}</td>
         <td>{{#if this.active}}Sí{{else}}No{{/if}}</td>
         <td>
-          <a href="/admin/products/{{this.id}}/edit">Editar</a>
+          <a href="/admin/products/{{this.id}}/edit{{#if ../selectedCategoryId}}?categoryId={{../selectedCategoryId}}{{/if}}">Editar</a>
           <form action="/admin/products/{{this.id}}/delete" method="post" style="display:inline">
             <button type="submit" class="link-button">Eliminar</button>
           </form>
