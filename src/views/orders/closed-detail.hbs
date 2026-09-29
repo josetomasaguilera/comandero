@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+{{> nav}}
+<main class="container">
+  <a href="/orders/closed">&larr; Órdenes cerradas</a>
+  <h1>Orden #{{order.id}} · Cerrada</h1>
+  <p>Mesa: {{#if order.table}}{{order.table.name}}{{else}}#{{order.tableId}}{{/if}}</p>
+  <p>Apertura: {{formatDate order.createdAt}} · Cierre: {{formatDate order.closedAt}}</p>
+  <div class="table-scroll" role="region" aria-label="Productos de la orden" tabindex="0">
+    <table class="admin-table">
+      <thead><tr><th aria-label="Unidades"></th><th>Producto</th><th>Notas</th><th>Extras</th><th>Precio</th><th>Total por línea</th></tr></thead>
+      <tbody>
+        {{#each order.items}}
+        <tr>
+          <td>{{this.quantity}}</td>
+          <td>{{#if this.product}}{{this.product.name}}{{else}}Producto #{{this.productId}} (eliminado){{/if}}</td>
+          <td>{{this.notes}}</td>
+          <td>{{#if this.extrasCents}}{{extrasPrice this.extrasCents}}{{else}}0,00 €{{/if}}</td>
+          <td>{{formatPrice (unitPrice this)}}</td>
+          <td>{{formatPrice (lineTotal this)}}</td>
+        </tr>
+        {{else}}<tr><td colspan="6">Esta orden no tiene productos.</td></tr>{{/each}}
+      </tbody>
+      <tfoot><tr><th colspan="5" scope="row">Total general</th><td><strong>{{total order.items}}</strong></td></tr></tfoot>
+    </table>
+  </div>
+  <p>Importes calculados con los precios actuales de los productos. No se conserva el precio histórico de cierre.</p>
+</main>
+</body>
+</html>

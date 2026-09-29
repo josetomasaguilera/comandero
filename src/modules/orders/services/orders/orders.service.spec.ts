@@ -51,3 +51,23 @@ describe('Order extras', () => {
     expect(items.create).not.toHaveBeenCalled();
   });
 });
+
+describe('Closed orders', () => {
+  it('limits the list to the latest closed orders of the current bar', async () => {
+    const query = { sort: jest.fn().mockReturnThis(), limit: jest.fn().mockReturnThis(), populate: jest.fn().mockReturnThis(), exec: jest.fn().mockResolvedValue([]) };
+    const orders = { find: jest.fn().mockReturnValue(query) };
+    const service = new OrdersService(orders as any, {} as any, {} as any, {} as any, {} as any);
+    await service.findRecentClosed(7);
+    expect(orders.find).toHaveBeenCalledWith({ barId: 7, status: 'cerrado' });
+    expect(query.sort).toHaveBeenCalledWith({ closedAt: -1, id: -1 });
+    expect(query.limit).toHaveBeenCalledWith(50);
+  });
+
+  it('only retrieves closed details in the current bar and rejects missing orders', async () => {
+    const query = { populate: jest.fn().mockReturnThis(), exec: jest.fn().mockResolvedValue(null) };
+    const orders = { findOne: jest.fn().mockReturnValue(query) };
+    const service = new OrdersService(orders as any, {} as any, {} as any, {} as any, {} as any);
+    await expect(service.findClosed(12, 7)).rejects.toThrow('Orden cerrada no encontrada');
+    expect(orders.findOne).toHaveBeenCalledWith({ id: 12, barId: 7, status: 'cerrado' });
+  });
+});

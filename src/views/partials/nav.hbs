@@ -9,12 +9,14 @@
   <nav class="topbar__nav">
     {{#if (eq currentUser.role "waiter")}}
     <a href="/tables">Mesas</a>
+    <a href="/orders/closed">Órdenes cerradas</a>
     {{/if}}
     {{#if (eq currentUser.role "kitchen")}}
     <a href="/kitchen">Cocina</a>
     {{/if}}
     {{#if (eq currentUser.role "admin")}}
     <a href="/tables">Mesas</a>
+    <a href="/orders/closed">Órdenes cerradas</a>
     <a href="/kitchen">Cocina</a>
     <a href="/admin">Administración</a>
     {{/if}}

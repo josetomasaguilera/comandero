@@ -45,7 +45,7 @@ export class BarsService implements OnModuleInit {
     for (const product of sourceProducts) {
       const categoryId = categoryIds.get(product.categoryId);
       if (!categoryId) throw new NotFoundException('Un producto de la plantilla no tiene categoría');
-      await this.products.create({ id: await this.ids.next('products'), name: product.name, price: product.price, active: product.active, categoryId, imageUrl: product.imageUrl, barId: bar.id });
+      await this.products.create({ id: await this.ids.next('products'), name: product.name, price: product.price, cost: product.cost ?? 0, active: product.active, categoryId, imageUrl: product.imageUrl, barId: bar.id });
     }
     const sourceTables = await this.tables.find({ barId: template.id }).sort({ id: 1 }).exec();
     for (const table of sourceTables) {
