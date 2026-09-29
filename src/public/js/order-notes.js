@@ -4,6 +4,12 @@
   let activeButton;
   let activeInput;
 
+  document.querySelectorAll('.menu-product').forEach((row) => {
+    row.querySelector('form[id^="add-"]').addEventListener('submit', () => {
+      row.classList.remove('menu-product--selected');
+    });
+  });
+
   document.querySelectorAll('[data-notes-target]').forEach((button) => {
     button.addEventListener('click', () => {
       activeButton = button;
@@ -24,6 +30,7 @@
 
   document.getElementById('notes-cancel').addEventListener('click', () => dialog.close());
   dialog.addEventListener('close', () => {
+    activeButton?.closest('.menu-product').classList.add('menu-product--selected');
     activeButton?.focus();
     activeInput = null;
   });

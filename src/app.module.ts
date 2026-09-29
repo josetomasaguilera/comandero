@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { BillingModule } from './modules/billing/billing.module';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { DatabaseModule } from './modules/database/database.module';
@@ -17,6 +18,7 @@ import { BarsModule } from './modules/bars/bars.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule,
+    BillingModule,
     UsersModule,
     AuthModule,
     TablesModule,

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+{{> nav}}
+<main class="container">
+  <h1>Suscripción</h1>
+  {{#if error}}<p role="alert">{{error}}</p>{{/if}}
+  {{#if exempt}}
+    <p>Tu bar está exento de suscripción por ser cliente anterior. Puedes seguir utilizando la aplicación gratis.</p>
+  {{else}}
+    <h2>Comandero · 10 € al mes por bar</h2>
+    <p>Incluye a todos los usuarios de tu bar. Renovación mensual automática; puedes cancelar desde la gestión de suscripción.</p>
+    {{#if trial}}
+      <p>Te quedan {{daysLeft}} días de prueba gratuita, hasta el {{trialEnd}}.</p>
+      <p>No necesitas tarjeta. Al finalizar los 30 días, el administrador podrá suscribirse para continuar.</p>
+    {{else if paid}}
+      <p>Suscripción activa. Acceso hasta el {{paidUntil}}.</p>
+      {{#if cancelAtPeriodEnd}}<p>La suscripción no se renovará. Podrás utilizar la aplicación hasta esa fecha.</p>{{/if}}
+    {{else}}
+      <p>Para continuar utilizando el bar necesitas una suscripción activa. Tus datos se conservan.</p>
+    {{/if}}
+    {{#if returned}}<p role="status">Estamos comprobando el pago. Si aún no aparece activo, vuelve a consultar el estado en unos segundos.</p>{{/if}}
+    {{#if cancelled}}<p>Has vuelto del pago sin completarlo.</p>{{/if}}
+    {{#if isAdmin}}
+      {{#if configured}}
+        {{#if canSubscribe}}
+          <form action="/billing/checkout" method="post">
+            <input type="hidden" name="csrf" value="{{csrf}}">
+            <button class="button" type="submit">Suscribirme por 10 €/mes</button>
+          </form>
+        {{/if}}
+        {{#if hasCustomer}}
+          <form action="/billing/portal" method="post">
+            <input type="hidden" name="csrf" value="{{csrf}}">
+            <p><button class="button button--secondary" type="submit">Gestionar suscripción y facturas</button></p>
+          </form>
+        {{/if}}
+      {{else}}
+        <p>El pago todavía no está disponible. Contacta con el responsable de Comandero para activar la suscripción.</p>
+      {{/if}}
+    {{else}}
+      <p>Solo un administrador de tu bar puede gestionar la suscripción.</p>
+    {{/if}}
+    <p><a href="/billing">Actualizar estado</a></p>
+  {{/if}}
+  {{#if allowed}}<p><a href="/">Volver a la aplicación</a></p>{{/if}}
+</main>
+</body>
+</html>

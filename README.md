@@ -59,7 +59,13 @@ Sin esta clave, el botón de voz seguirá transcribiendo, pero no podrá interpr
 
 Cada dominio vive en `src/modules/<nombre>` con `entities/`, `services/` y `controllers/` (Mongoose + Nest). Las vistas Handlebars están en `src/views`, los estáticos (CSS) en `src/public`. El estado en tiempo real (nuevos pedidos a cocina, platos listos) se transmite vía Socket.IO (`src/modules/events`).
 
-## Scripts
+## Suscripciones
+
+Los nuevos bares tienen 30 días gratuitos sin tarjeta y después pueden contratar Stripe por **10 €/mes por bar**. Los bares existentes quedan exentos de forma permanente. La gestión está en **Administración → Suscripción**.
+
+Consulta [la configuración de Stripe, webhooks y pruebas](docs/subscriptions.md) antes de activar los pagos. Requiere `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET` y `APP_URL` en el servidor.
+
+## Scripts disponibles
 
 - `npm run start:dev` — desarrollo con recarga en caliente
 - `npm run build` / `npm run start:prod` — build y ejecución en producción

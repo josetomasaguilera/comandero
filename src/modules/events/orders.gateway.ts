@@ -8,6 +8,7 @@ import { Injectable } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { getSessionMiddleware } from '../../common/session-middleware';
 import { UsersService } from '../users/services/users/users.service';
+import { BillingService } from '../billing/billing.service';
 
 @Injectable()
 @WebSocketGateway({ cors: true })
@@ -15,7 +16,7 @@ export class OrdersGateway implements OnGatewayInit {
   @WebSocketServer()
   server: Server;
 
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService, private readonly billing: BillingService) {}
 
   afterInit(server: Server): void {
     server.use((socket, next) => {
@@ -32,6 +33,7 @@ export class OrdersGateway implements OnGatewayInit {
 
   @SubscribeMessage('join')
   async handleJoin(client: Socket, payload: { barId: number; role: 'kitchen' | 'waiters' }) {
+    if (!payload || !Number.isSafeInteger(payload.barId)) { client.disconnect(); return; }
     const session = (client.request as { session?: { passport?: { user?: number } } }).session;
     const userId = session?.passport?.user;
     const user = userId ? await this.usersService.findById(userId) : null;
@@ -43,7 +45,20 @@ export class OrdersGateway implements OnGatewayInit {
       client.disconnect();
       return;
     }
+    try {
+      if (!(await this.billing.access(user.barId)).allowed) { client.disconnect(); return; }
+    } catch { client.disconnect(); return; }
     client.join(this.room(payload.barId, payload.role));
+    if (!client.data.billingTimer) {
+      const timer = setInterval(async () => {
+        try {
+          if (!(await this.billing.access(user.barId)).allowed) client.disconnect();
+        } catch { client.disconnect(); }
+      }, 60000);
+      timer.unref();
+      client.data.billingTimer = timer;
+      client.once('disconnect', () => clearInterval(timer));
+    }
   }
 
   notifyKitchenNewItems(barId: number, tableId: number, tableName: string) {

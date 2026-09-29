@@ -11,6 +11,8 @@ import { Request, Response, NextFunction } from 'express';
 import { AuthRedirectFilter } from './modules/auth/filters/auth-redirect.filter';
 import { User } from './modules/users/entities/user.schema';
 import { setSessionMiddleware } from './common/session-middleware';
+import { BillingService } from './modules/billing/billing.service';
+import { subscriptionMiddleware } from './modules/billing/billing.middleware';
 
 hbs.registerHelper('eq', (a: unknown, b: unknown) => a === b);
 hbs.registerHelper('formatPrice', (value: string | number) =>
@@ -25,7 +27,7 @@ hbs.registerHelper('total', (items: { product?: { price?: string }; quantity: nu
 });
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { rawBody: true });
   const config = app.get(ConfigService);
 
   app.setBaseViewsDir(join(__dirname, 'views'));
@@ -45,6 +47,7 @@ async function bootstrap() {
   app.use(sessionMiddleware);
   app.use(passport.initialize());
   app.use(passport.session());
+  app.use(subscriptionMiddleware(app.get(BillingService)));
 
   app.use((req: Request, res: Response, next: NextFunction) => {
     res.locals.currentUser = req.user ?? null;
