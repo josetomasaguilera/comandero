@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Order } from '../../entities/order.schema';
@@ -42,13 +42,19 @@ export class OrdersService {
     if (!order) throw new NotFoundException('Pedido no encontrado');
     return order;
   }
-  async addItem(orderId: number, productId: number, quantity: number, notes: string | null, barId: number): Promise<OrderItem> {
-    const normalizedNotes = notes || null;
-    const existing = await this.items.findOne({ orderId, productId, notes: normalizedNotes, status: 'pendiente', barId }).exec();
+  async addItem(orderId: number, productId: number, quantity: number, notes: string | null, barId: number, extrasCents = 0): Promise<OrderItem> {
+    if (!Number.isSafeInteger(extrasCents) || extrasCents < 0 || extrasCents % 50 !== 0) {
+      throw new BadRequestException('Los extras deben ser un importe positivo en pasos de 0,50 €');
+    }
+    const noteParts = (notes || '').split(';').map((part) => part.trim()).filter(Boolean);
+    const normalizedNotes = [...noteParts.filter((part) => part.toLowerCase() !== 'con extras'), ...(extrasCents > 0 ? ['con extras'] : [])].join('; ') || null;
+    const existing = await this.items.findOne({ orderId, productId, notes: normalizedNotes, status: 'pendiente', barId,
+      ...(extrasCents === 0 ? { $or: [{ extrasCents: 0 }, { extrasCents: { $exists: false } }] } : { extrasCents }),
+    }).exec();
     if (existing) { existing.quantity += quantity; return existing.save(); }
     const product = await this.products.findOne({ id: productId, barId }).populate('category').exec();
     if (!product?.category) throw new NotFoundException('Producto no encontrado');
-    return this.items.create({ id: await this.ids.next('orderItems'), orderId, productId, quantity, notes: normalizedNotes, destination: product.category.destination, status: 'pendiente', barId });
+    return this.items.create({ id: await this.ids.next('orderItems'), orderId, productId, quantity, notes: normalizedNotes, extrasCents, destination: product.category.destination, status: 'pendiente', barId });
   }
   async incrementQuantity(itemId: number, barId: number): Promise<OrderItem> {
     const item = await this.item(itemId, barId); item.quantity += 1; return item.save();

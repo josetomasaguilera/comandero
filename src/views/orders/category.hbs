@@ -33,12 +33,16 @@
           <form id="add-{{this.id}}" action="/tables/{{../table.id}}/order/items" method="post">
             <input type="hidden" name="productId" value="{{this.id}}">
             <input type="hidden" name="notes" id="notes-{{this.id}}" value="">
+            <input type="hidden" name="extrasCents" value="0">
             <button type="submit" class="button button--small">+1</button>
           </form>
           </div>
           <span class="menu-product__price">{{formatPrice this.price}}</span>
           </div>
+          <div class="menu-product__actions">
+          <button type="button" class="link-button menu-product__notes-button" data-extras-open data-product-name="{{this.name}}" aria-haspopup="dialog" aria-controls="extras-dialog">Añadir extras</button>
           <button type="button" class="link-button menu-product__notes-button" data-notes-target="notes-{{this.id}}" data-product-name="{{this.name}}" aria-haspopup="dialog" aria-controls="notes-dialog">Añadir notas</button>
+          </div>
         </div>
         {{/each}}
         {{#unless products.length}}
@@ -59,6 +63,22 @@
     <div class="notes-dialog__actions">
       <button type="button" id="notes-cancel" class="button button--secondary">Cancelar</button>
       <button type="submit" class="button">Guardar notas</button>
+    </div>
+  </form>
+</dialog>
+<dialog id="extras-dialog" class="notes-dialog" aria-labelledby="extras-dialog-title">
+  <form id="extras-dialog-form">
+    <h2 id="extras-dialog-title">Extras del producto</h2>
+    <p id="extras-product-name"></p>
+    <p>Importe de extras por unidad:</p>
+    <div class="menu-product__extras">
+      <button type="button" class="button button--small button--secondary" data-extras-step="-50" aria-label="Quitar 0,50 € de extras" disabled>−0,50 €</button>
+      <output id="extras-total" aria-live="polite">0,00 €</output>
+      <button type="button" class="button button--small" data-extras-step="50" aria-label="Añadir 0,50 € de extras" autofocus>+0,50 €</button>
+    </div>
+    <div class="notes-dialog__actions">
+      <button type="button" id="extras-cancel" class="button button--secondary">Cancelar</button>
+      <button type="submit" class="button">Guardar extras</button>
     </div>
   </form>
 </dialog>

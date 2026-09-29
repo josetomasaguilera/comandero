@@ -307,6 +307,9 @@ input[type="checkbox"] { width: 1.25rem; height: 1.25rem; }
 .menu-product__row { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
 .menu-product__name { flex: 1 1 0; }
 .menu-product__price { white-space: nowrap; flex-shrink: 0; }
+.menu-product__extras { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 0.5rem; }
+.menu-product__actions { display: flex; justify-content: flex-end; gap: 1rem; }
+#extras-dialog .menu-product__extras { justify-content: center; margin-bottom: 1rem; }
 .menu-product__controls {
   display: flex;
   align-items: center;

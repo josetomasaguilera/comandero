@@ -6,6 +6,7 @@
       <span class="ticket-item__qty">{{this.quantity}}x</span>
       <span class="ticket-item__name">{{this.product.name}}</span>
       {{#if this.notes}}<span class="ticket-item__notes">({{this.notes}})</span>{{/if}}
+      {{#if this.extrasCents}}<span class="ticket-item__notes">Extras: +{{extrasPrice this.extrasCents}} por unidad</span>{{/if}}
       <span class="ticket-item__status">{{this.status}}</span>
       <form action="/tables/{{../table.id}}/order/items/{{this.id}}/decrementar" method="post">
         <button type="submit" class="button button--small button--secondary" title="Quitar 1 unidad" {{#if (eq this.status "listo")}}disabled{{/if}}>-1</button>

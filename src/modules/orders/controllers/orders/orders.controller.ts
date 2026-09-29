@@ -145,7 +145,7 @@ export class OrdersController {
   @Post('items')
   async addItem(
     @Param('tableId', ParseIntPipe) tableId: number,
-    @Body() body: { productId: string; quantity?: string; notes?: string },
+    @Body() body: { productId: string; quantity?: string; notes?: string; extrasCents?: string },
     @Res() res: Response,
     @Req() req: Request,
   ) {
@@ -158,6 +158,7 @@ export class OrdersController {
       Number(body.quantity) || 1,
       body.notes || null,
       barId,
+      Number(body.extrasCents ?? 0),
     );
     if (item.destination === 'cocina') {
       const table = await this.tablesService.findOne(tableId, barId);

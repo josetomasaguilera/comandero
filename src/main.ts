@@ -18,9 +18,10 @@ hbs.registerHelper('eq', (a: unknown, b: unknown) => a === b);
 hbs.registerHelper('formatPrice', (value: string | number) =>
   Number(value).toFixed(2).replace('.', ',') + ' €',
 );
-hbs.registerHelper('total', (items: { product?: { price?: string }; quantity: number }[]) => {
+hbs.registerHelper('extrasPrice', (cents: number) => (Number(cents) / 100).toFixed(2).replace('.', ',') + ' €');
+hbs.registerHelper('total', (items: { product?: { price?: string }; quantity: number; extrasCents?: number }[]) => {
   const total = (items ?? []).reduce(
-    (sum, item) => sum + Number(item.product?.price ?? 0) * item.quantity,
+    (sum, item) => sum + (Math.round(Number(item.product?.price ?? 0) * 100) + (item.extrasCents ?? 0)) * item.quantity / 100,
     0,
   );
   return total.toFixed(2).replace('.', ',') + ' €';
