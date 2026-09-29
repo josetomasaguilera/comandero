@@ -18,6 +18,9 @@
     <label>Precio
       <input type="text" name="price" value="{{product.price}}" required>
     </label>
+    <label>Coste por unidad (€)
+      <input type="text" name="cost" inputmode="decimal" value="{{#if product.cost}}{{product.cost}}{{else}}0{{/if}}" pattern="[0-9]+([.,][0-9]{1,2})?" title="Importe no negativo con hasta dos decimales">
+    </label>
     <label>Categoría
       <select name="categoryId" required>
         {{#each categories}}

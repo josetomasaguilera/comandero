@@ -1,5 +1,6 @@
 import {
   Body,
+  BadRequestException,
   Controller,
   ForbiddenException,
   NotFoundException,
@@ -57,7 +58,7 @@ export class AdminProductsController {
   @UseInterceptors(FileInterceptor('image', imageUploadOptions('products')))
   async create(
     @Body()
-    body: { name: string; price: string; categoryId: string; active?: string },
+    body: { name: string; price: string; cost?: string; categoryId: string; active?: string },
     @UploadedFile() image: Express.Multer.File | undefined,
     @Res() res: Response,
     @Req() req: Request,
@@ -68,6 +69,7 @@ export class AdminProductsController {
     await this.productsService.create(barId, {
       name: body.name,
       price: Number(body.price),
+      cost: this.parseCost(body.cost),
       categoryId: Number(body.categoryId),
       active: body.active === 'on',
       imageUrl: uploadedImageUrl('products', image) ?? null,
@@ -91,7 +93,7 @@ export class AdminProductsController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body()
-    body: { name: string; price: string; categoryId: string; active?: string },
+    body: { name: string; price: string; cost?: string; categoryId: string; active?: string },
     @UploadedFile() image: Express.Multer.File | undefined,
     @Res() res: Response,
     @Req() req: Request,
@@ -103,6 +105,7 @@ export class AdminProductsController {
     await this.productsService.update(id, barId, {
       name: body.name,
       price: Number(body.price),
+      cost: this.parseCost(body.cost),
       categoryId: Number(body.categoryId),
       active: body.active === 'on',
       ...(imageUrl ? { imageUrl } : {}),
@@ -114,6 +117,18 @@ export class AdminProductsController {
   async remove(@Param('id', ParseIntPipe) id: number, @Res() res: Response, @Req() req: Request) {
     await this.productsService.remove(id, this.barIdFor(req.user as User));
     res.redirect('/admin/products');
+  }
+
+  private parseCost(value?: string): number {
+    const normalized = typeof value === 'string' ? value.trim().replace(',', '.') : '';
+    if (value !== undefined && typeof value !== 'string') {
+      throw new BadRequestException('Coste no válido');
+    }
+    if (!normalized) return 0;
+    if (!/^\d+(\.\d{1,2})?$/.test(normalized) || !Number.isSafeInteger(Math.round(Number(normalized) * 100))) {
+      throw new BadRequestException('El coste debe ser un importe no negativo con un máximo de dos decimales');
+    }
+    return Number(normalized);
   }
 
   private barIdFor(user: User): number {

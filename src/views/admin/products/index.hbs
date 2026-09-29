@@ -26,7 +26,7 @@
   <div class="table-scroll" role="region" aria-label="Productos" tabindex="0">
   <table class="admin-table">
     <thead>
-      <tr><th>Foto</th><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Activo</th><th></th></tr>
+      <tr><th>Foto</th><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Coste</th><th>Activo</th><th></th></tr>
     </thead>
     <tbody>
       {{#each products}}
@@ -35,6 +35,7 @@
         <td>{{this.name}}</td>
         <td>{{this.category.name}}</td>
         <td>{{formatPrice this.price}}</td>
+        <td>{{#if this.cost}}{{formatPrice this.cost}}{{else}}0,00 €{{/if}}</td>
         <td>{{#if this.active}}Sí{{else}}No{{/if}}</td>
         <td>
           <a href="/admin/products/{{this.id}}/edit">Editar</a>

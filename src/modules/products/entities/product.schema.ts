@@ -5,6 +5,7 @@ export class Product {
   @Prop({ required: true, unique: true }) id: number;
   @Prop({ required: true }) name: string;
   @Prop({ required: true, type: Number }) price: number;
+  @Prop({ default: 0, min: 0, type: Number }) cost: number;
   @Prop({ default: true }) active: boolean;
   @Prop({ required: true, index: true }) categoryId: number;
   category: Category;
