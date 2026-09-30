@@ -73,6 +73,28 @@ Consulta [la configuración de Stripe, webhooks y pruebas](docs/subscriptions.md
 
 ## Despliegue en Cloud Run
 
+### Imágenes en Google Cloud Storage
+
+Las nuevas imágenes de productos y categorías se suben al bucket `linaje-images`
+del proyecto `linaje-504114`, bajo `products/` y `categories/`. Se mantiene el
+límite de 5 MB por archivo. MongoDB guarda la URL HTTPS del objeto una vez
+completada la subida; las imágenes existentes no se migran automáticamente.
+
+Opcionalmente, `GCS_IMAGES_BUCKET` permite cambiar el bucket. El cliente usa
+[Application Default Credentials](https://docs.cloud.google.com/storage/docs/authentication):
+en Cloud Run utiliza la cuenta de servicio del servicio, sin archivos de claves.
+Esta cuenta necesita `roles/storage.objectCreator` sobre el bucket.
+En desarrollo local, configura las credenciales con
+`gcloud auth application-default login`; tu usuario también debe tener permiso
+para crear objetos en el bucket.
+
+Las vistas utilizan URLs públicas permanentes. Para que las imágenes sean
+visibles, el bucket debe permitir lectura pública de objetos (`allUsers` con
+`roles/storage.objectViewer`). El código no modifica permisos del bucket ni
+ACL de los archivos. Si el bucket es privado, las URLs devolverán acceso denegado.
+
+### Publicar el servicio
+
 Configura `MONGODB_URI`, `MONGODB_DB` y `SESSION_SECRET` en el entorno de Cloud Run. El archivo `.env` local no configura las variables del servicio. Configura también `OPENAI_API_KEY` si utilizas la interpretación de pedidos por voz.
 
 Para desplegar desde el directorio actual (Cloud Build compila el proyecto):

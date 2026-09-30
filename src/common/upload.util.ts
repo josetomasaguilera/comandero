@@ -1,16 +1,14 @@
-import { diskStorage } from 'multer';
-import { extname, join } from 'path';
+import { memoryStorage } from 'multer';
+import { extname } from 'path';
+import { Storage } from '@google-cloud/storage';
 import { randomUUID } from 'crypto';
 import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
 
-export function imageUploadOptions(subfolder: string): MulterOptions {
+let storage: Storage | undefined;
+
+export function imageUploadOptions(): MulterOptions {
   return {
-    storage: diskStorage({
-      destination: join(__dirname, '..', 'public', 'uploads', subfolder),
-      filename: (_req, file, callback) => {
-        callback(null, `${randomUUID()}${extname(file.originalname)}`);
-      },
-    }),
+    storage: memoryStorage(),
     fileFilter: (_req, file, callback) => {
       if (!file.mimetype.startsWith('image/')) {
         callback(new Error('Sólo se permiten imágenes'), false);
@@ -22,9 +20,25 @@ export function imageUploadOptions(subfolder: string): MulterOptions {
   };
 }
 
-export function uploadedImageUrl(
+export async function uploadedImageUrl(
   subfolder: string,
   file?: Express.Multer.File,
-): string | undefined {
-  return file ? `/uploads/${subfolder}/${file.filename}` : undefined;
+): Promise<string | undefined> {
+  if (!file) return undefined;
+
+  storage ??= new Storage();
+  const object = storage
+    .bucket(process.env.GCS_IMAGES_BUCKET || 'linaje-images')
+    .file(`${subfolder}/${randomUUID()}${extname(file.originalname)}`);
+
+  await object.save(file.buffer, {
+    resumable: false,
+    metadata: {
+      contentType: file.mimetype,
+      cacheControl: 'public, max-age=31536000, immutable',
+    },
+    preconditionOpts: { ifGenerationMatch: 0 },
+  });
+
+  return object.publicUrl();
 }

@@ -61,7 +61,7 @@ export class AdminProductsController {
   }
 
   @Post()
-  @UseInterceptors(FileInterceptor('image', imageUploadOptions('products')))
+  @UseInterceptors(FileInterceptor('image', imageUploadOptions()))
   async create(
     @Body()
     body: { name: string; price: string; cost?: string; categoryId: string; active?: string; selectedCategoryId?: string },
@@ -78,7 +78,7 @@ export class AdminProductsController {
       cost: this.parseCost(body.cost),
       categoryId: Number(body.categoryId),
       active: body.active === 'on',
-      imageUrl: uploadedImageUrl('products', image) ?? null,
+      imageUrl: (await uploadedImageUrl('products', image)) ?? null,
     });
     res.redirect(this.productsUrl(body.selectedCategoryId));
   }
@@ -98,7 +98,7 @@ export class AdminProductsController {
   }
 
   @Post(':id')
-  @UseInterceptors(FileInterceptor('image', imageUploadOptions('products')))
+  @UseInterceptors(FileInterceptor('image', imageUploadOptions()))
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body()
@@ -108,7 +108,7 @@ export class AdminProductsController {
     @Req() req: Request,
   ) {
     const barId = this.barIdFor(req.user as User);
-    const imageUrl = uploadedImageUrl('products', image);
+    const imageUrl = await uploadedImageUrl('products', image);
     const category = await this.categoriesService.findOne(Number(body.categoryId), barId);
     if (!category) throw new NotFoundException('Categoría no encontrada');
     await this.productsService.update(id, barId, {

@@ -42,7 +42,7 @@ export class AdminCategoriesController {
   }
 
   @Post()
-  @UseInterceptors(FileInterceptor('image', imageUploadOptions('categories')))
+  @UseInterceptors(FileInterceptor('image', imageUploadOptions()))
   async create(
     @Body()
     body: { name: string; order: string; destination: CategoryDestination },
@@ -54,7 +54,7 @@ export class AdminCategoriesController {
       name: body.name,
       order: Number(body.order) || 0,
       destination: body.destination,
-      imageUrl: uploadedImageUrl('categories', image) ?? null,
+      imageUrl: (await uploadedImageUrl('categories', image)) ?? null,
     });
     res.redirect('/admin/categories');
   }
@@ -66,7 +66,7 @@ export class AdminCategoriesController {
   }
 
   @Post(':id')
-  @UseInterceptors(FileInterceptor('image', imageUploadOptions('categories')))
+  @UseInterceptors(FileInterceptor('image', imageUploadOptions()))
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body()
@@ -75,7 +75,7 @@ export class AdminCategoriesController {
     @Res() res: Response,
     @Req() req: Request,
   ) {
-    const imageUrl = uploadedImageUrl('categories', image);
+    const imageUrl = await uploadedImageUrl('categories', image);
     await this.categoriesService.update(id, this.barIdFor(req.user as User), {
       name: body.name,
       order: Number(body.order) || 0,
