@@ -1,6 +1,17 @@
 import {
-  BadRequestException, Body, Controller, ForbiddenException, Get,
-  NotFoundException, Param, ParseIntPipe, Post, Render, Req, Res, UseGuards,
+  BadRequestException,
+  Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  NotFoundException,
+  Param,
+  ParseIntPipe,
+  Post,
+  Render,
+  Req,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthenticatedGuard } from '../../../auth/guards/authenticated.guard';
@@ -36,14 +47,21 @@ export class AdminTablesController {
   }
 
   @Post()
-  async create(@Body() body: { name?: unknown; zone?: unknown }, @Req() req: Request, @Res() res: Response) {
+  async create(
+    @Body() body: { name?: unknown; zone?: unknown },
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
     const barId = this.barIdFor(req);
     try {
       await this.tablesService.create(barId, this.parse(body));
     } catch (error) {
       if (!(error instanceof BadRequestException)) throw error;
       return res.status(400).render('admin/tables/form', {
-        title: 'Nueva mesa', zones, values: this.values(body), error: error.message,
+        title: 'Nueva mesa',
+        zones,
+        values: this.values(body),
+        error: error.message,
       });
     }
     res.redirect('/admin/tables');
@@ -58,28 +76,42 @@ export class AdminTablesController {
   }
 
   @Post(':id')
-  async update(@Param('id', ParseIntPipe) id: number, @Body() body: { name?: unknown; zone?: unknown }, @Req() req: Request, @Res() res: Response) {
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { name?: unknown; zone?: unknown },
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
     const barId = this.barIdFor(req);
     try {
       await this.tablesService.update(id, barId, this.parse(body));
     } catch (error) {
       if (!(error instanceof BadRequestException)) throw error;
       return res.status(400).render('admin/tables/form', {
-        title: 'Editar mesa', tableId: id, zones, values: this.values(body), error: error.message,
+        title: 'Editar mesa',
+        tableId: id,
+        zones,
+        values: this.values(body),
+        error: error.message,
       });
     }
     res.redirect('/admin/tables');
   }
 
   @Post(':id/delete')
-  async remove(@Param('id', ParseIntPipe) id: number, @Req() req: Request, @Res() res: Response) {
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
     const barId = this.barIdFor(req);
     try {
       await this.tablesService.remove(id, barId);
     } catch (error) {
       if (!(error instanceof BadRequestException)) throw error;
       return res.status(400).render('admin/tables/index', {
-        ...await this.list(barId), error: error.message,
+        ...(await this.list(barId)),
+        error: error.message,
       });
     }
     res.redirect('/admin/tables');
@@ -90,7 +122,9 @@ export class AdminTablesController {
     return {
       title: 'Mesas',
       tables: tables.map((table) => ({
-        id: table.id, name: table.name, status: table.status,
+        id: table.id,
+        name: table.name,
+        status: table.status,
         zoneLabel: zones.find((zone) => zone.value === table.zone)?.label,
       })),
     };
@@ -106,7 +140,9 @@ export class AdminTablesController {
   private parse(body: { name?: unknown; zone?: unknown }) {
     const values = this.values(body);
     if (!values.name || values.name.length > 100) {
-      throw new BadRequestException('El nombre debe tener entre 1 y 100 caracteres');
+      throw new BadRequestException(
+        'El nombre debe tener entre 1 y 100 caracteres',
+      );
     }
     const zone = zones.find((zone) => zone.value === values.zone);
     if (!zone) throw new BadRequestException('Selecciona una zona válida');
