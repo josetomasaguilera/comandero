@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+{{> nav}}
+<main class="container">
+  <p><a href="/admin">&larr; Administración</a></p>
+  <h1>Mesas</h1>
+  {{#if error}}<p role="alert">{{error}}</p>{{/if}}
+  <a class="button" href="/admin/tables/new">Nueva mesa</a>
+  <div class="table-scroll" role="region" aria-label="Mesas" tabindex="0">
+    <table class="admin-table">
+      <thead><tr><th>Nombre</th><th>Zona</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody>
+        {{#each tables}}
+        <tr>
+          <td>{{this.name}}</td><td>{{this.zoneLabel}}</td><td>{{this.status}}</td>
+          <td>
+            <a href="/admin/tables/{{this.id}}/edit">Editar</a>
+            <form action="/admin/tables/{{this.id}}/delete" method="post" style="display:inline" onsubmit="return confirm('¿Eliminar esta mesa?')">
+              <button type="submit" class="link-button">Eliminar</button>
+            </form>
+          </td>
+        </tr>
+        {{else}}
+        <tr><td colspan="4">No hay mesas. Crea la primera mesa para empezar.</td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>

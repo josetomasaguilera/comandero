@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+{{> nav}}
+<main class="container">
+  <p><a href="/admin/tables">&larr; Mesas</a></p>
+  <h1>{{title}}</h1>
+  {{#if error}}<p role="alert">{{error}}</p>{{/if}}
+  <form class="admin-form" action="{{#if tableId}}/admin/tables/{{tableId}}{{else}}/admin/tables{{/if}}" method="post">
+    <label>Nombre
+      <input type="text" name="name" value="{{values.name}}" required maxlength="100">
+    </label>
+    <label>Zona
+      <select name="zone" required>
+        {{#each zones}}
+        <option value="{{this.value}}" {{#if (eq ../values.zone this.value)}}selected{{/if}}>{{this.label}}</option>
+        {{/each}}
+      </select>
+    </label>
+    <button type="submit">Guardar</button>
+    <a href="/admin/tables">Cancelar</a>
+  </form>
+</main>
+</body>
+</html>

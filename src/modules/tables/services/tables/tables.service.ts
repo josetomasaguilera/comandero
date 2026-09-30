@@ -1,12 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Table, TableStatus, TableZone } from '../../entities/table.schema';
+import { IdGeneratorService } from '../../../database/id-generator.service';
+import { Order } from '../../../orders/entities/order.schema';
 
 @Injectable()
 export class TablesService {
   constructor(
     @InjectModel(Table.name) private readonly tablesRepository: Model<Table>,
+    private readonly ids: IdGeneratorService,
+    @InjectModel(Order.name) private readonly ordersRepository: Model<Order>,
   ) {}
 
   findAll(barId: number): Promise<Table[]> {
@@ -24,6 +28,38 @@ export class TablesService {
 
   findOne(id: number, barId: number): Promise<Table | null> {
     return this.tablesRepository.findOne({ id, barId }).exec();
+  }
+
+  async create(barId: number, data: Pick<Table, 'name' | 'zone'>): Promise<Table> {
+    return this.tablesRepository.create({
+      name: data.name,
+      zone: data.zone,
+      id: await this.ids.next('tables'),
+      barId,
+      status: 'libre',
+    });
+  }
+
+  async update(id: number, barId: number, data: Pick<Table, 'name' | 'zone'>): Promise<void> {
+    const result = await this.tablesRepository.updateOne(
+      { id, barId },
+      { $set: { name: data.name, zone: data.zone } },
+      { runValidators: true },
+    ).exec();
+    if (!result.matchedCount) throw new NotFoundException('Mesa no encontrada');
+  }
+
+  async remove(id: number, barId: number): Promise<void> {
+    const table = await this.findOne(id, barId);
+    if (!table) throw new NotFoundException('Mesa no encontrada');
+    if (table.status !== 'libre') {
+      throw new BadRequestException('No se puede eliminar una mesa ocupada o reservada');
+    }
+    if (await this.ordersRepository.exists({ tableId: id, barId })) {
+      throw new BadRequestException('No se puede eliminar una mesa con comandas. Puedes cambiar su nombre o zona');
+    }
+    const result = await this.tablesRepository.deleteOne({ id, barId, status: 'libre' }).exec();
+    if (!result.deletedCount) throw new BadRequestException('La mesa ya no está disponible para eliminar');
   }
 
   async setStatus(id: number, barId: number, status: TableStatus): Promise<void> {
