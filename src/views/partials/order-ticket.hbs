@@ -18,7 +18,12 @@
     {{/each}}
   </ul>
   <div class="ticket-total">Total: {{total order.items}}</div>
-  <form action="/tables/{{table.id}}/order/cerrar" method="post">
-    <button type="submit" class="button button--danger">Cerrar mesa y cobrar</button>
-  </form>
+  <div class="ticket-actions">
+    <form action="/tables/{{table.id}}/order/cerrar" method="post">
+      <button type="submit" class="button button--danger">Cerrar mesa y cobrar</button>
+    </form>
+    <form action="/tables/{{table.id}}/order/{{order.id}}/cancelar" method="post">
+      <button type="submit" class="button button--secondary">Cancelar</button>
+    </form>
+  </div>
 </section>

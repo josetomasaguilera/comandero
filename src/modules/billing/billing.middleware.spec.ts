@@ -26,10 +26,10 @@ describe('Subscription gate', () => {
   });
   it('keeps billing, logout and login available', async () => {
     const s = setup();
-    for (const path of ['/billing', '/billing/checkout', '/billing/webhook', '/logout', '/login']) {
+    for (const path of ['/billing', '/billing/checkout', '/billing/webhook', '/logout', '/login', '/forgot-password', '/reset-password']) {
       await s.middleware(s.request(path) as never, s.res as never, s.next);
     }
-    expect(s.next).toHaveBeenCalledTimes(5);
+    expect(s.next).toHaveBeenCalledTimes(7);
     expect(s.billing.access).not.toHaveBeenCalled();
   });
   it('allows trial, paid or exempt bars', async () => {

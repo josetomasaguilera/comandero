@@ -21,6 +21,35 @@ export class UsersService {
     return this.usersRepository.findOne({ id }).populate('bar').exec();
   }
 
+  issuePasswordReset(username: string, email: string, hash: string, now: Date) {
+    return this.usersRepository.findOneAndUpdate(
+      { username, email, $or: [
+        { passwordResetRequestedAt: { $exists: false } },
+        { passwordResetRequestedAt: { $lte: new Date(now.getTime() - 60_000) } },
+      ] },
+      { $set: { passwordResetHash: hash, passwordResetExpiresAt: new Date(now.getTime() + 30 * 60_000), passwordResetRequestedAt: now } },
+      { new: true },
+    ).exec();
+  }
+
+  clearPasswordReset(hash: string) {
+    return this.usersRepository.updateOne({ passwordResetHash: hash }, {
+      $unset: { passwordResetHash: 1, passwordResetExpiresAt: 1, passwordResetRequestedAt: 1 },
+    }).exec();
+  }
+
+  async hasPasswordReset(hash: string) {
+    return !!await this.usersRepository.exists({ passwordResetHash: hash, passwordResetExpiresAt: { $gt: new Date() } }).exec();
+  }
+
+  async consumePasswordReset(hash: string, passwordHash: string) {
+    const result = await this.usersRepository.updateOne(
+      { passwordResetHash: hash, passwordResetExpiresAt: { $gt: new Date() } },
+      { $set: { passwordHash }, $inc: { sessionVersion: 1 }, $unset: { passwordResetHash: 1, passwordResetExpiresAt: 1 } },
+    ).exec();
+    return result.modifiedCount === 1;
+  }
+
   async create(user: Partial<User>): Promise<User> {
     return this.usersRepository.create({ ...user, id: await this.ids.next('users') });
   }

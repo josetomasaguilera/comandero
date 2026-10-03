@@ -91,6 +91,16 @@ export class OrdersService {
   async closeOrder(orderId: number, barId: number): Promise<void> {
     const order = await this.findOrderWithItems(orderId, barId); order.status = 'cerrado'; order.closedAt = new Date(); await (order as any).save(); await this.tables.setStatus(order.tableId, barId, 'libre');
   }
+  async cancelOrder(orderId: number, tableId: number, barId: number): Promise<void> {
+    await this.orders.db.transaction(async (session) => {
+      const order = await this.orders.findOneAndDelete({
+        id: orderId, tableId, barId, status: 'abierto',
+      }).session(session).exec();
+      if (!order) throw new NotFoundException('Pedido abierto no encontrado');
+      await this.items.deleteMany({ orderId, barId }).session(session).exec();
+      await this.tables.setStatus(tableId, barId, 'libre', session);
+    });
+  }
   findKitchenPendingItems(barId: number): Promise<OrderItem[]> {
     return this.items
       .find({ barId, destination: 'cocina', status: 'pendiente' })

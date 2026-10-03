@@ -244,6 +244,20 @@ export class OrdersController {
     res.redirect('/tables');
   }
 
+  @Post(':orderId/cancelar')
+  async cancel(
+    @Param('tableId', ParseIntPipe) tableId: number,
+    @Param('orderId', ParseIntPipe) orderId: number,
+    @Res() res: Response,
+    @Req() req: Request,
+  ) {
+    const barId = this.barIdFor(req.user as User);
+    await this.ordersService.cancelOrder(orderId, tableId, barId);
+    this.ordersGateway.notifyKitchenItemsUpdated(barId, tableId, '');
+    this.ordersGateway.notifyTableStatusChanged(barId);
+    res.redirect(303, '/tables');
+  }
+
   @Get('state')
   async state(@Param('tableId', ParseIntPipe) tableId: number, @Req() req: Request) {
     const order = await this.ordersService.findOpenOrderForTable(tableId, this.barIdFor(req.user as User));

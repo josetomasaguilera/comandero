@@ -52,6 +52,53 @@ describe('Order extras', () => {
   });
 });
 
+describe('Order cancellation', () => {
+  const setup = (order: unknown = { id: 12 }) => {
+    const session = {};
+    const query = (value: unknown) => ({ session: jest.fn().mockReturnThis(), exec: jest.fn().mockResolvedValue(value) });
+    const deletion = query(order);
+    const itemDeletion = query({ deletedCount: 2 });
+    const orders = {
+      db: { transaction: jest.fn(async (work) => work(session)) },
+      findOneAndDelete: jest.fn().mockReturnValue(deletion),
+    };
+    const items = { deleteMany: jest.fn().mockReturnValue(itemDeletion) };
+    const tables = { setStatus: jest.fn().mockResolvedValue(undefined) };
+    const service = new OrdersService(orders as never, items as never, {} as never, {} as never, tables as never);
+    return { service, orders, items, tables, session, deletion, itemDeletion };
+  };
+
+  it('deletes the open order and its lines and frees the table in one transaction', async () => {
+    const s = setup();
+    await s.service.cancelOrder(12, 3, 7);
+    expect(s.orders.findOneAndDelete).toHaveBeenCalledWith({ id: 12, tableId: 3, barId: 7, status: 'abierto' });
+    expect(s.items.deleteMany).toHaveBeenCalledWith({ orderId: 12, barId: 7 });
+    expect(s.deletion.session).toHaveBeenCalledWith(s.session);
+    expect(s.itemDeletion.session).toHaveBeenCalledWith(s.session);
+    expect(s.tables.setStatus).toHaveBeenCalledWith(3, 7, 'libre', s.session);
+  });
+
+  it('does not delete lines or free a table if the scoped open order is missing', async () => {
+    const s = setup(null);
+    await expect(s.service.cancelOrder(12, 3, 7)).rejects.toThrow('Pedido abierto no encontrado');
+    expect(s.items.deleteMany).not.toHaveBeenCalled();
+    expect(s.tables.setStatus).not.toHaveBeenCalled();
+  });
+
+  it('propagates deletion failures to abort the transaction without freeing the table', async () => {
+    const s = setup();
+    s.itemDeletion.exec.mockRejectedValue(new Error('Database error'));
+    await expect(s.service.cancelOrder(12, 3, 7)).rejects.toThrow('Database error');
+    expect(s.tables.setStatus).not.toHaveBeenCalled();
+  });
+
+  it('propagates table update failures to abort the transaction', async () => {
+    const s = setup();
+    s.tables.setStatus.mockRejectedValue(new Error('Table update failed'));
+    await expect(s.service.cancelOrder(12, 3, 7)).rejects.toThrow('Table update failed');
+  });
+});
+
 describe('Closed orders', () => {
   it('limits the list to the latest closed orders of the current bar', async () => {
     const query = { sort: jest.fn().mockReturnThis(), limit: jest.fn().mockReturnThis(), populate: jest.fn().mockReturnThis(), exec: jest.fn().mockResolvedValue([]) };

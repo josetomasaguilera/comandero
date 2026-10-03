@@ -13,6 +13,7 @@ describe('User administration', () => {
   const setup = () => {
     const repository = {
       findOne: jest.fn().mockReturnValue(query({ id: 2 })),
+      findOneAndUpdate: jest.fn().mockReturnValue(query({ id: 2 })),
       updateOne: jest.fn().mockReturnValue(query({ matchedCount: 1 })),
       deleteOne: jest.fn().mockReturnValue(query({ deletedCount: 1 })),
       create: jest.fn(),
@@ -20,6 +21,32 @@ describe('User administration', () => {
     return { repository, service: new UsersService(repository as never, { next: jest.fn().mockResolvedValue(3) } as never) };
   };
   const body = { username: 'camarero', email: '', role: 'waiter', password: '' };
+
+  it('atomically consumes only an unexpired token and invalidates sessions', async () => {
+    const { repository, service } = setup();
+    repository.updateOne.mockReturnValue(query({ modifiedCount: 1 }));
+    expect(await service.consumePasswordReset('digest', 'bcrypt-hash')).toBe(true);
+    expect(repository.updateOne).toHaveBeenCalledWith(
+      { passwordResetHash: 'digest', passwordResetExpiresAt: { $gt: expect.any(Date) } },
+      { $set: { passwordHash: 'bcrypt-hash' }, $inc: { sessionVersion: 1 }, $unset: { passwordResetHash: 1, passwordResetExpiresAt: 1 } },
+    );
+    repository.updateOne.mockReturnValue(query({ modifiedCount: 0 }));
+    expect(await service.consumePasswordReset('digest', 'bcrypt-hash')).toBe(false);
+  });
+
+  it('issues a 30 minute token with an atomic per-account cooldown', async () => {
+    const { repository, service } = setup();
+    const now = new Date('2026-10-02T12:00:00Z');
+    await service.issuePasswordReset('user', 'user@example.com', 'digest', now);
+    expect(repository.findOneAndUpdate).toHaveBeenCalledWith(
+      { username: 'user', email: 'user@example.com', $or: [
+        { passwordResetRequestedAt: { $exists: false } },
+        { passwordResetRequestedAt: { $lte: new Date('2026-10-02T11:59:00Z') } },
+      ] },
+      { $set: { passwordResetHash: 'digest', passwordResetExpiresAt: new Date('2026-10-02T12:30:00Z'), passwordResetRequestedAt: now } },
+      { new: true },
+    );
+  });
 
   it('scopes updates to the current bar and preserves an unchanged password', async () => {
     const { repository, service } = setup();

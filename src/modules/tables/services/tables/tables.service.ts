@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { ClientSession, Model } from 'mongoose';
 import { Table, TableStatus, TableZone } from '../../entities/table.schema';
 import { IdGeneratorService } from '../../../database/id-generator.service';
 import { Order } from '../../../orders/entities/order.schema';
@@ -90,7 +90,10 @@ export class TablesService {
     id: number,
     barId: number,
     status: TableStatus,
+    session?: ClientSession,
   ): Promise<void> {
-    await this.tablesRepository.updateOne({ id, barId }, { status }).exec();
+    const query = this.tablesRepository.updateOne({ id, barId }, { status });
+    if (session) query.session(session);
+    await query.exec();
   }
 }

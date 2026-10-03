@@ -31,7 +31,7 @@ export class AuthController {
       const user = req.user as User;
       return { redirectTo: this.authService.homeRouteForRole(user.role) };
     }
-    return { title: 'Iniciar sesión', error: req.query.error };
+    return { title: 'Iniciar sesión', error: req.query.error, passwordReset: req.query.reset === 'success' };
   }
 
   @Get('/register')

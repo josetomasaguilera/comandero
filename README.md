@@ -67,6 +67,9 @@ Consulta [la configuración de Stripe, webhooks y pruebas](docs/subscriptions.md
 
 ## Scripts disponibles
 
+La recuperación de contraseña por email requiere configurar SMTP y `APP_URL`.
+Consulta [la configuración y comprobación del flujo](docs/password-recovery.md).
+
 - `npm run start:dev` — desarrollo con recarga en caliente
 - `npm run build` / `npm run start:prod` — build y ejecución en producción
 - `npm run seed` — datos de prueba

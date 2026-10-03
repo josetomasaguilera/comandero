@@ -4,7 +4,7 @@ import { User } from '../users/entities/user.schema';
 
 export function subscriptionMiddleware(billing: BillingService) {
   return async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.isAuthenticated() || ['/login', '/register', '/logout', '/'].includes(req.path)
+    if (!req.isAuthenticated() || ['/login', '/register', '/logout', '/forgot-password', '/reset-password', '/'].includes(req.path)
       || req.path === '/billing' || req.path.startsWith('/billing/')) return next();
     try {
       const access = await billing.access((req.user as User).barId);

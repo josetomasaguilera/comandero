@@ -34,14 +34,16 @@ export class OrdersGateway implements OnGatewayInit {
   @SubscribeMessage('join')
   async handleJoin(client: Socket, payload: { barId: number; role: 'kitchen' | 'waiters' }) {
     if (!payload || !Number.isSafeInteger(payload.barId)) { client.disconnect(); return; }
-    const session = (client.request as { session?: { passport?: { user?: number } } }).session;
-    const userId = session?.passport?.user;
+    const session = (client.request as { session?: { passport?: { user?: number | { id: number; version: number } } } }).session;
+    const identity = session?.passport?.user;
+    const userId = typeof identity === 'number' ? identity : identity?.id;
+    const version = typeof identity === 'number' ? 0 : identity?.version;
     const user = userId ? await this.usersService.findById(userId) : null;
     const isAllowedRole =
       user?.role === 'admin' ||
       (payload.role === 'kitchen' && user?.role === 'kitchen') ||
       (payload.role === 'waiters' && user?.role === 'waiter');
-    if (!user || user.barId !== payload.barId || !isAllowedRole) {
+    if (!user || (user.sessionVersion ?? 0) !== version || user.barId !== payload.barId || !isAllowedRole) {
       client.disconnect();
       return;
     }
@@ -52,6 +54,8 @@ export class OrdersGateway implements OnGatewayInit {
     if (!client.data.billingTimer) {
       const timer = setInterval(async () => {
         try {
+          const current = await this.usersService.findById(user.id);
+          if (!current || (current.sessionVersion ?? 0) !== version) { client.disconnect(); return; }
           if (!(await this.billing.access(user.barId)).allowed) client.disconnect();
         } catch { client.disconnect(); }
       }, 60000);

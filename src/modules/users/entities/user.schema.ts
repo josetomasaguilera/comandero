@@ -7,6 +7,10 @@ export class User {
   @Prop({ required: true, unique: true }) username: string;
   @Prop({ trim: true, lowercase: true }) email?: string;
   @Prop({ required: true }) passwordHash: string;
+  @Prop({ select: false }) passwordResetHash?: string;
+  @Prop({ select: false }) passwordResetExpiresAt?: Date;
+  @Prop({ select: false }) passwordResetRequestedAt?: Date;
+  @Prop({ default: 0 }) sessionVersion: number;
   @Prop({ required: true, enum: ['admin', 'waiter', 'kitchen'] }) role: UserRole;
   @Prop({ required: true, index: true }) barId: number;
   bar: Bar | null;
