@@ -8,10 +8,10 @@
       {{#if this.notes}}<span class="ticket-item__notes">({{this.notes}})</span>{{/if}}
       {{#if this.extrasCents}}<span class="ticket-item__notes">Extras: +{{extrasPrice this.extrasCents}} por unidad</span>{{/if}}
       <span class="ticket-item__status">{{this.status}}</span>
-      <form action="/tables/{{../table.id}}/order/items/{{this.id}}/decrementar" method="post">
+      <form data-order-quantity action="/tables/{{../table.id}}/order/items/{{this.id}}/decrementar" method="post">
         <button type="submit" class="button button--small button--secondary" title="Quitar 1 unidad" {{#if (eq this.status "listo")}}disabled{{/if}}>-1</button>
       </form>
-      <form action="/tables/{{../table.id}}/order/items/{{this.id}}/incrementar" method="post">
+      <form data-order-quantity action="/tables/{{../table.id}}/order/items/{{this.id}}/incrementar" method="post">
         <button type="submit" class="button button--small" title="Añadir 1 unidad" {{#if (eq this.status "listo")}}disabled{{/if}}>+1</button>
       </form>
     </li>
