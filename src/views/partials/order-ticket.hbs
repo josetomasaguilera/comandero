@@ -4,9 +4,11 @@
     {{#each order.items}}
     <li class="ticket-item ticket-item--{{this.status}}">
       <span class="ticket-item__qty">{{this.quantity}}x</span>
+      <div class="ticket-item__description">
       <span class="ticket-item__name">{{this.product.name}}</span>
       {{#if this.notes}}<span class="ticket-item__notes">({{this.notes}})</span>{{/if}}
       {{#if this.extrasCents}}<span class="ticket-item__notes">Extras: +{{extrasPrice this.extrasCents}} por unidad</span>{{/if}}
+      </div>
       <div class="ticket-item__controls">
       <span class="ticket-item__status">{{this.status}}</span>
       <form data-order-quantity action="/tables/{{../table.id}}/order/items/{{this.id}}/decrementar" method="post">

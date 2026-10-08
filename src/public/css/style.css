@@ -208,6 +208,8 @@ body {
   border-bottom: 1px solid #eee;
   font-size: 0.9rem;
 }
+.ticket-item__description { flex: 1 1 0; min-width: 0; overflow-wrap: anywhere; }
+.ticket-item__name, .ticket-item__notes { display: block; }
 .ticket-item__notes { color: #777; font-style: italic; }
 .ticket-item__controls {
   display: flex;
@@ -348,9 +350,10 @@ input[type="checkbox"] { width: 1.25rem; height: 1.25rem; }
 .menu-product__controls form { flex: 0 0 auto; }
 .menu-product__controls .button { min-width: 44px; }
 .product-thumb, .ticket-item__qty, .kitchen-item__qty { flex-shrink: 0; }
-.ticket-item, .kitchen-item { flex-wrap: wrap; }
-.ticket-item__name, .kitchen-item__name { flex: 1 1 50%; min-width: 0; }
-.ticket-item__notes, .kitchen-item__notes { flex-basis: 100%; }
+.ticket-item { flex-wrap: nowrap; }
+.kitchen-item { flex-wrap: wrap; }
+.kitchen-item__name { flex: 1 1 50%; min-width: 0; }
+.kitchen-item__notes { flex-basis: 100%; }
 .voice-order__table, .filter-form label, .kitchen-header { flex-wrap: wrap; }
 .voice-order__table select, .filter-form select { min-width: 0; max-width: 100%; }
 .admin-form { width: 100%; }
