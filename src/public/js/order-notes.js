@@ -24,7 +24,9 @@
   let extrasAmount = 0;
   const renderExtras = () => {
     document.getElementById('extras-total').textContent = (extrasAmount / 100).toFixed(2).replace('.', ',') + ' €';
-    extrasDialog.querySelector('[data-extras-step="-50"]').disabled = extrasAmount === 0;
+    extrasDialog.querySelectorAll('[data-extras-step]').forEach((button) => {
+      if (Number(button.dataset.extrasStep) < 0) button.disabled = extrasAmount === 0;
+    });
   };
   document.querySelectorAll('[data-extras-open]').forEach((button) => {
     button.addEventListener('click', () => {

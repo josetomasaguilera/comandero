@@ -35,7 +35,13 @@ describe('Order extras', () => {
     expect(items.findOne).toHaveBeenCalledWith(expect.objectContaining({ $or: [{ extrasCents: 0 }, { extrasCents: { $exists: false } }] }));
   });
 
-  it.each([-50, 25, 50.5, NaN, Infinity])('rejects invalid extras: %s', async (amount) => {
+  it.each([10, 20, 30, 40, 50, 70])('saves extras from combined 20 and 50 cent adjustments: %s', async (amount) => {
+    const { service } = setup();
+    const item = await service.addItem(1, 2, 1, null, 4, amount);
+    expect(item).toMatchObject({ extrasCents: amount, notes: 'con extras' });
+  });
+
+  it.each([-50, -20, 25, 50.5, NaN, Infinity])('rejects invalid extras: %s', async (amount) => {
     const { service, items } = setup();
     await expect(service.addItem(1, 2, 1, null, 4, amount)).rejects.toThrow(BadRequestException);
     expect(items.create).not.toHaveBeenCalled();
@@ -49,6 +55,27 @@ describe('Order extras', () => {
     expect(existing.extrasCents).toBe(50);
     expect(existing.save).toHaveBeenCalled();
     expect(items.create).not.toHaveBeenCalled();
+  });
+});
+
+describe('Sales snapshots on closing', () => {
+  it('stores unit prices including extras and does not overwrite already closed sales', async () => {
+    const order = { status: 'abierto', tableId: 3, save: jest.fn(), items: [
+      { id: 4, quantity: 2, extrasCents: 20, product: { name: 'Café', price: 1.5 } },
+    ] };
+    const orders = { findOne: jest.fn().mockReturnValue({ populate: jest.fn().mockReturnThis(), exec: jest.fn().mockResolvedValue(order) }) };
+    const items = { bulkWrite: jest.fn().mockResolvedValue({}) };
+    const tables = { setStatus: jest.fn() };
+    const service = new OrdersService(orders as never, items as never, {} as never, {} as never, tables as never);
+    await service.closeOrder(12, 7);
+    expect(items.bulkWrite).toHaveBeenCalledWith([{ updateOne: {
+      filter: { id: 4, orderId: 12, barId: 7 },
+      update: { $set: { saleUnitPriceCents: 170, saleProductName: 'Café' } },
+    } }]);
+    expect(order.status).toBe('cerrado');
+    expect(order.save).toHaveBeenCalledTimes(1);
+    await service.closeOrder(12, 7);
+    expect(items.bulkWrite).toHaveBeenCalledTimes(1);
   });
 });
 

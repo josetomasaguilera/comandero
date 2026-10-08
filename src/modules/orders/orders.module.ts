@@ -4,6 +4,7 @@ import { Order, OrderSchema } from './entities/order.schema';
 import { OrderItem, OrderItemSchema } from './entities/order-item.schema';
 import { Product, ProductSchema } from '../products/entities/product.schema';
 import { OrdersService } from './services/orders/orders.service';
+import { SalesReportsService } from './services/sales-reports.service';
 import { OrdersController } from './controllers/orders/orders.controller';
 import { ClosedOrdersController } from './controllers/orders/closed-orders.controller';
 import { TablesModule } from '../tables/tables.module';
@@ -26,7 +27,7 @@ import { VoiceOrderModule } from '../voice-order/voice-order.module';
     VoiceOrderModule,
   ],
   controllers: [OrdersController, ClosedOrdersController],
-  providers: [OrdersService],
-  exports: [OrdersService],
+  providers: [OrdersService, SalesReportsService],
+  exports: [OrdersService, SalesReportsService],
 })
 export class OrdersModule {}

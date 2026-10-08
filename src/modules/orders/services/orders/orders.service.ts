@@ -55,8 +55,8 @@ export class OrdersService {
     return order;
   }
   async addItem(orderId: number, productId: number, quantity: number, notes: string | null, barId: number, extrasCents = 0): Promise<OrderItem> {
-    if (!Number.isSafeInteger(extrasCents) || extrasCents < 0 || extrasCents % 50 !== 0) {
-      throw new BadRequestException('Los extras deben ser un importe positivo en pasos de 0,50 €');
+    if (!Number.isSafeInteger(extrasCents) || extrasCents < 0 || extrasCents % 10 !== 0) {
+      throw new BadRequestException('Los extras deben ser un importe no negativo en múltiplos de 0,10 €');
     }
     const noteParts = (notes || '').split(';').map((part) => part.trim()).filter(Boolean);
     const normalizedNotes = [...noteParts.filter((part) => part.toLowerCase() !== 'con extras'), ...(extrasCents > 0 ? ['con extras'] : [])].join('; ') || null;
@@ -89,7 +89,23 @@ export class OrdersService {
     const item = await this.item(itemId, barId); item.status = status; return item.save();
   }
   async closeOrder(orderId: number, barId: number): Promise<void> {
-    const order = await this.findOrderWithItems(orderId, barId); order.status = 'cerrado'; order.closedAt = new Date(); await (order as any).save(); await this.tables.setStatus(order.tableId, barId, 'libre');
+    const order = await this.findOrderWithItems(orderId, barId);
+    if (order.status === 'cerrado') return;
+    const snapshots = (order.items ?? []).map((item) => {
+      if (!item.product) throw new BadRequestException('No se puede cerrar un pedido con productos eliminados');
+      return { updateOne: {
+        filter: { id: item.id, orderId, barId },
+        update: { $set: {
+          saleUnitPriceCents: Math.round(Number(item.product.price) * 100) + (item.extrasCents ?? 0),
+          saleProductName: item.product.name,
+        } },
+      } };
+    });
+    if (snapshots.length) await this.items.bulkWrite(snapshots);
+    order.status = 'cerrado';
+    order.closedAt = new Date();
+    await (order as any).save();
+    await this.tables.setStatus(order.tableId, barId, 'libre');
   }
   async cancelOrder(orderId: number, tableId: number, barId: number): Promise<void> {
     await this.orders.db.transaction(async (session) => {

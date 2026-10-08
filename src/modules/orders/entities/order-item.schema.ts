@@ -12,6 +12,8 @@ export class OrderItem {
   product: Product;
   @Prop({ default: 1 }) quantity: number;
   @Prop({ default: 0, min: 0 }) extrasCents: number;
+  @Prop({ type: Number, min: 0 }) saleUnitPriceCents?: number;
+  @Prop({ type: String }) saleProductName?: string;
   @Prop({ default: null, type: String }) notes: string | null;
   @Prop({ required: true, enum: ['cocina', 'barra'] }) destination: CategoryDestination;
   @Prop({ default: 'pendiente', enum: ['pendiente', 'listo', 'servido'] }) status: OrderItemStatus;

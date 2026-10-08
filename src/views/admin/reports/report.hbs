@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+{{> nav}}
+<main class="container">
+  <a href="/admin/reports">&larr; Listados de ventas</a>
+  <h1>{{title}}</h1>
+  <form action="{{reportPath}}" method="get" class="filter-form sales-report-filter">
+    <label for="report-month">Mes
+      <select id="report-month" name="month">
+        {{#each months}}
+        <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+        {{/each}}
+      </select>
+    </label>
+    <button class="button" type="submit">Ver listado</button>
+  </form>
+  <p>Pedidos cerrados en {{monthLabel}}. Importes con extras incluidos. Fecha de cierre según la hora de Madrid.</p>
+  {{#if estimated}}<p role="status">Este mes incluye pedidos antiguos sin precio histórico guardado. Sus importes se calculan con el precio actual del producto.</p>{{/if}}
+  {{#if missingPrices}}<p role="alert">Hay productos eliminados sin precio histórico: los totales están incompletos y solo incluyen sus extras conocidos.</p>{{/if}}
+  <p><strong>Total del mes: {{extrasPrice totalCents}}</strong> · {{orderCount}} pedidos · {{quantity}} unidades</p>
+  {{#unless orderCount}}<p>No hay ventas en el mes seleccionado.</p>{{/unless}}
+  {{#if daily}}
+  <section aria-labelledby="daily-heading">
+    <h2 id="daily-heading">Ventas totales diarias</h2>
+    <div class="table-scroll" role="region" aria-labelledby="daily-heading" tabindex="0">
+      <table class="admin-table">
+        <thead><tr><th scope="col">Día</th><th scope="col">Pedidos</th><th scope="col">Total de ventas</th></tr></thead>
+        <tbody>
+          {{#each days}}<tr><th scope="row">{{date}}</th><td>{{orders}}</td><td>{{extrasPrice totalCents}}</td></tr>{{/each}}
+        </tbody>
+        <tfoot><tr><th scope="row">Total del mes</th><td>{{orderCount}}</td><td>{{extrasPrice totalCents}}</td></tr></tfoot>
+      </table>
+    </div>
+  </section>
+  {{else}}
+  <section aria-labelledby="products-heading">
+    <h2 id="products-heading">Ventas del mes por producto</h2>
+    {{#if products.length}}
+    <div class="table-scroll" role="region" aria-labelledby="products-heading" tabindex="0">
+      <table class="admin-table">
+        <thead><tr><th scope="col">Producto</th><th scope="col">Unidades</th><th scope="col">Total de ventas</th></tr></thead>
+        <tbody>
+          {{#each products}}<tr><th scope="row">{{name}}</th><td>{{quantity}}</td><td>{{extrasPrice totalCents}}</td></tr>{{/each}}
+        </tbody>
+        <tfoot><tr><th scope="row">Total del mes</th><td>{{quantity}}</td><td>{{extrasPrice totalCents}}</td></tr></tfoot>
+      </table>
+    </div>
+    {{else}}<p>No hay productos vendidos en el mes seleccionado.</p>{{/if}}
+  </section>
+  {{/if}}
+</main>
+</body>
+</html>
