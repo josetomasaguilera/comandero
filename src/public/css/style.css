@@ -209,7 +209,15 @@ body {
   font-size: 0.9rem;
 }
 .ticket-item__notes { color: #777; font-style: italic; }
-.ticket-item__status { margin-left: auto; text-transform: uppercase; font-size: 0.7rem; }
+.ticket-item__controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+.ticket-item__status { white-space: nowrap; text-transform: uppercase; font-size: 0.7rem; }
 .ticket-item--listo { color: #3a7d44; }
 .ticket-item--servido { opacity: 0.5; }
 .ticket-total { font-weight: bold; margin: 1rem 0; }

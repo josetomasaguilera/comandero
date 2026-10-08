@@ -7,6 +7,7 @@
       <span class="ticket-item__name">{{this.product.name}}</span>
       {{#if this.notes}}<span class="ticket-item__notes">({{this.notes}})</span>{{/if}}
       {{#if this.extrasCents}}<span class="ticket-item__notes">Extras: +{{extrasPrice this.extrasCents}} por unidad</span>{{/if}}
+      <div class="ticket-item__controls">
       <span class="ticket-item__status">{{this.status}}</span>
       <form data-order-quantity action="/tables/{{../table.id}}/order/items/{{this.id}}/decrementar" method="post">
         <button type="submit" class="button button--small button--secondary" title="Quitar 1 unidad" {{#if (eq this.status "listo")}}disabled{{/if}}>-1</button>
@@ -14,6 +15,7 @@
       <form data-order-quantity action="/tables/{{../table.id}}/order/items/{{this.id}}/incrementar" method="post">
         <button type="submit" class="button button--small" title="Añadir 1 unidad" {{#if (eq this.status "listo")}}disabled{{/if}}>+1</button>
       </form>
+      </div>
     </li>
     {{/each}}
   </ul>
