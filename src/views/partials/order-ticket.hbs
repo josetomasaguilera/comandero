@@ -1,5 +1,5 @@
-<section class="ticket">
-  <h2>Pedido</h2>
+<section class="ticket" tabindex="-1" aria-labelledby="order-summary-title">
+  <h2 id="order-summary-title">Pedido</h2>
   <ul id="ticket-items" class="ticket-items">
     {{#each order.items}}
     <li class="ticket-item ticket-item--{{this.status}}">

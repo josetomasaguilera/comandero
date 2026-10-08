@@ -27,10 +27,10 @@
           {{#if this.imageUrl}}<img class="product-thumb" src="{{this.imageUrl}}" alt="">{{/if}}
           <span class="menu-product__name">{{this.name}}</span>
           <div class="menu-product__controls">
-          <form data-order-quantity action="/tables/{{../table.id}}/order/products/{{this.id}}/decrementar" method="post">
+          <form data-catalog-quantity action="/tables/{{../table.id}}/order/products/{{this.id}}/decrementar" method="post">
             <button type="submit" class="button button--small button--secondary">-1</button>
           </form>
-          <form data-order-quantity id="add-{{this.id}}" action="/tables/{{../table.id}}/order/items" method="post">
+          <form data-catalog-quantity id="add-{{this.id}}" action="/tables/{{../table.id}}/order/items" method="post">
             <input type="hidden" name="productId" value="{{this.id}}">
             <input type="hidden" name="notes" id="notes-{{this.id}}" value="">
             <input type="hidden" name="extrasCents" value="0">
