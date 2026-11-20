@@ -5,6 +5,7 @@ export type TableStatus = 'libre' | 'reservada' | 'ocupada';
 export class Table {
   @Prop({ required: true, unique: true }) id: number;
   @Prop({ required: true }) name: string;
+  @Prop({ type: String, default: null }) temporaryName!: string | null;
   @Prop({ required: true, enum: ['interior', 'terraza_a', 'terraza_b'] }) zone: TableZone;
   @Prop({ default: 'libre', enum: ['libre', 'reservada', 'ocupada'] }) status: TableStatus;
   @Prop({ required: true, index: true }) barId: number;

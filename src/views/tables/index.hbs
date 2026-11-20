@@ -16,7 +16,14 @@
     <div class="tables-grid">
       {{#each this.tables}}
       <div class="table-card table-card--{{this.status}}">
-        <div class="table-card__name">{{this.name}}</div>
+        <div class="table-card__name">
+          {{#if (eq this.status "ocupada")}}
+          <button type="button" class="table-name-button" title="Editar nombre temporal" data-table-name-edit="/tables/{{this.id}}/nombre-temporal" data-current-name="{{#if this.temporaryName}}{{this.temporaryName}}{{else}}{{this.name}}{{/if}}">{{this.name}}</button>
+          {{#if this.temporaryName}}<span class="table-name-alias">({{this.temporaryName}})</span>{{/if}}
+          {{else}}
+          {{this.name}}
+          {{/if}}
+        </div>
         <div class="table-card__status">{{this.status}}</div>
         <div class="table-card__actions">
           {{#if (eq this.status "ocupada")}}
@@ -45,6 +52,25 @@
   const socket = io();
   socket.emit('join', { barId: {{currentBar.id}}, role: 'waiters' });
   socket.on('waiter:tablesChanged', () => window.location.reload());
+</script>
+<script>
+  document.querySelectorAll('[data-table-name-edit]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const name = window.prompt('Nombre temporal de la mesa (máximo 60 caracteres)', button.dataset.currentName);
+      if (name === null) return;
+      try {
+        const response = await fetch(button.dataset.tableNameEdit, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name }),
+        });
+        if (!response.ok) throw new Error();
+        window.location.reload();
+      } catch {
+        window.alert('No se pudo cambiar el nombre. Comprueba que tenga entre 1 y 60 caracteres.');
+      }
+    });
+  });
 </script>
 </body>
 </html>

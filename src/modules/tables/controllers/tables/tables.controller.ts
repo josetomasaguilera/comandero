@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
@@ -56,6 +57,19 @@ export class TablesController {
     await this.tablesService.setStatus(id, barId, 'libre');
     this.ordersGateway.notifyTableStatusChanged(barId);
     res.redirect('/tables');
+  }
+
+  @Post(':id/nombre-temporal')
+  async setTemporaryName(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { name?: string },
+    @Res() res: Response,
+    @Req() req: Request,
+  ) {
+    const barId = this.barIdFor(req.user as User);
+    await this.tablesService.setTemporaryName(id, barId, body.name ?? '');
+    this.ordersGateway.notifyTableAliasChanged(barId);
+    res.sendStatus(204);
   }
 
   private barIdFor(user: User): number {

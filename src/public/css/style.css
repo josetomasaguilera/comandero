@@ -102,6 +102,17 @@ body {
 .table-card--reservada { background: #c98a1a; }
 .table-card--ocupada { background: #b3261e; }
 .table-card__name { font-size: 1.2rem; font-weight: bold; }
+.table-name-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+.table-name-button:hover,
+.table-name-button:focus-visible { text-decoration: underline; }
 .table-card__status { text-transform: uppercase; font-size: 0.75rem; }
 .table-card__actions { display: flex; flex-direction: column; gap: 0.4rem; }
 .table-card__actions form { margin: 0; }

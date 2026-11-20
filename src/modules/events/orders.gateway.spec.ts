@@ -46,3 +46,22 @@ describe('Socket session versions', () => {
     },
   );
 });
+
+describe('Table change notifications', () => {
+  it('keeps status changes separate from alias changes', () => {
+    const waiters = { emit: jest.fn() };
+    const kitchen = { emit: jest.fn() };
+    const gateway = new OrdersGateway({} as never, {} as never);
+    gateway.server = {
+      to: jest.fn((room: string) => room.endsWith(':waiters') ? waiters : kitchen),
+    } as never;
+
+    gateway.notifyTableStatusChanged(7);
+    expect(waiters.emit).toHaveBeenCalledWith('waiter:tablesChanged');
+    expect(waiters.emit).not.toHaveBeenCalledWith('waiter:tableAliasChanged');
+
+    gateway.notifyTableAliasChanged(7);
+    expect(waiters.emit).toHaveBeenCalledWith('waiter:tableAliasChanged');
+    expect(kitchen.emit).toHaveBeenCalledWith('kitchen:tableChanged');
+  });
+});

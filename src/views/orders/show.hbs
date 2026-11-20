@@ -11,7 +11,7 @@
 <main class="container order-page">
   <div class="order-page__header">
     <a href="/tables">&larr; Volver a mesas</a>
-    <h1>{{table.name}} <span class="badge badge--{{table.status}}">{{table.status}}</span></h1>
+    <h1>{{table.name}}{{#if table.temporaryName}} <span class="table-name-alias">({{table.temporaryName}})</span>{{/if}} <span class="badge badge--{{table.status}}">{{table.status}}</span></h1>
   </div>
 
   <div class="order-layout">
@@ -23,7 +23,7 @@
         <label class="voice-order__table">Mesa
           <select id="voice-order-table">
             {{#each voiceTables}}
-            <option value="{{this.id}}" {{#if (eq this.id ../table.id)}}selected{{/if}}>{{this.name}}</option>
+            <option value="{{this.id}}" {{#if (eq this.id ../table.id)}}selected{{/if}}>{{this.name}}{{#if this.temporaryName}} ({{this.temporaryName}}){{/if}}</option>
             {{/each}}
           </select>
         </label>
@@ -62,6 +62,7 @@
   socket.on('waiter:itemReady', (data) => {
     if (data.tableId === {{table.id}}) window.location.reload();
   });
+  socket.on('waiter:tableAliasChanged', () => window.location.reload());
 
   const voiceStartButton = document.getElementById('voice-order-start');
   if (voiceStartButton) {
@@ -128,9 +129,12 @@
           return;
         }
         voiceTableSelect.value = String(result.tableId);
+        const interpretedTableName = result.tableAlias
+          ? `${result.tableName} (${result.tableAlias})`
+          : result.tableName;
         voiceStatus.textContent = result.unmatched.length
-          ? `He entendido: “${transcript}” para ${result.tableName}. No he añadido: ${result.unmatched.join(', ')}.`
-          : `He entendido: “${transcript}” para ${result.tableName}.`;
+          ? `He entendido: “${transcript}” para ${interpretedTableName}. No he añadido: ${result.unmatched.join(', ')}.`
+          : `He entendido: “${transcript}” para ${interpretedTableName}.`;
         showPreview(result.items);
       } catch {
         voiceStatus.textContent = 'No se ha podido interpretar el pedido por voz. Inténtalo de nuevo.';

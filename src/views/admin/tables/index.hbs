@@ -19,7 +19,7 @@
       <tbody>
         {{#each tables}}
         <tr>
-          <td>{{this.name}}</td><td>{{this.zoneLabel}}</td><td>{{this.status}}</td>
+          <td>{{this.name}}{{#if this.temporaryName}} <span class="table-name-alias">({{this.temporaryName}})</span>{{/if}}</td><td>{{this.zoneLabel}}</td><td>{{this.status}}</td>
           <td>
             <a href="/admin/tables/{{this.id}}/edit">Editar</a>
             <form action="/admin/tables/{{this.id}}/delete" method="post" style="display:inline" onsubmit="return confirm('¿Eliminar esta mesa?')">

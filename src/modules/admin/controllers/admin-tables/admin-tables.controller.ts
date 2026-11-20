@@ -124,6 +124,7 @@ export class AdminTablesController {
       tables: tables.map((table) => ({
         id: table.id,
         name: table.name,
+        temporaryName: table.temporaryName,
         status: table.status,
         zoneLabel: zones.find((zone) => zone.value === table.zone)?.label,
       })),

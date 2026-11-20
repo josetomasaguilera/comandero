@@ -11,7 +11,7 @@
 <main class="container">
   <a href="/orders/closed">&larr; Órdenes cerradas</a>
   <h1>Orden #{{order.id}} · Cerrada</h1>
-  <p>Mesa: {{#if order.table}}{{order.table.name}}{{else}}#{{order.tableId}}{{/if}}</p>
+  <p>Mesa: {{#if order.table}}{{order.table.name}}{{else}}#{{order.tableId}}{{/if}}{{#if order.tableAlias}} ({{order.tableAlias}}){{/if}}</p>
   <p>Apertura: {{formatDate order.createdAt}} · Cierre: {{formatDate order.closedAt}}</p>
   <div class="table-scroll" role="region" aria-label="Productos de la orden" tabindex="0">
     <table class="admin-table">

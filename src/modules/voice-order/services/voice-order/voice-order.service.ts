@@ -40,12 +40,16 @@ export class VoiceOrderService {
           'Nunca inventes productos. Si algo no se corresponde de forma fiable con la carta, inclúyelo en unmatched. ' +
           'Para cada producto reconocido, pon en notes cualquier detalle o parte de la comanda que no añada otro producto, ' +
           'por ejemplo “sin lactosa”, “con hielo” o “muy hecho”. Usa una cadena vacía si no hay notas. ' +
-          'Si la comanda indica una mesa, devuelve su ID usando la lista de mesas. Si no indica ninguna mesa, devuelve tableId 0. ' +
+          'Si la comanda indica una mesa, reconoce su nombre o alias y devuelve su ID usando la lista de mesas. Si no indica ninguna mesa, devuelve tableId 0. ' +
           'Las cantidades deben ser enteros positivos entre 1 y 20.',
         input: JSON.stringify({
           transcript,
           products: products.map((product) => ({ id: product.id, name: product.name })),
-          tables: tables.map((table) => ({ id: table.id, name: table.name })),
+          tables: tables.map((table) => ({
+            id: table.id,
+            name: table.name,
+            alias: table.temporaryName,
+          })),
         }),
         text: {
           format: {

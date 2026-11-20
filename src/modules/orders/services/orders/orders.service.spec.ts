@@ -60,9 +60,9 @@ describe('Order extras', () => {
 
 describe('Sales snapshots on closing', () => {
   it('stores unit prices including extras and does not overwrite already closed sales', async () => {
-    const order = { status: 'abierto', tableId: 3, save: jest.fn(), items: [
+    const order = { status: 'abierto', tableId: 3, table: { temporaryName: 'Cumpleaños' }, save: jest.fn(), items: [
       { id: 4, quantity: 2, extrasCents: 20, product: { name: 'Café', price: 1.5 } },
-    ] };
+    ] } as any;
     const orders = { findOne: jest.fn().mockReturnValue({ populate: jest.fn().mockReturnThis(), exec: jest.fn().mockResolvedValue(order) }) };
     const items = { bulkWrite: jest.fn().mockResolvedValue({}) };
     const tables = { setStatus: jest.fn() };
@@ -73,6 +73,7 @@ describe('Sales snapshots on closing', () => {
       update: { $set: { saleUnitPriceCents: 170, saleProductName: 'Café' } },
     } }]);
     expect(order.status).toBe('cerrado');
+    expect(order.tableAlias).toBe('Cumpleaños');
     expect(order.save).toHaveBeenCalledTimes(1);
     await service.closeOrder(12, 7);
     expect(items.bulkWrite).toHaveBeenCalledTimes(1);

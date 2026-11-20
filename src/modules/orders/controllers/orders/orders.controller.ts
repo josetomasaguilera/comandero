@@ -59,7 +59,7 @@ export class OrdersController {
     const voiceTables = await this.tablesService.findAll(barId);
 
     return {
-      title: `Mesa ${table.name}`,
+      title: `Mesa ${table.name}${table.temporaryName ? ` (${table.temporaryName})` : ''}`,
       table,
       order,
       categories,
@@ -109,6 +109,7 @@ export class OrdersController {
     return {
       tableId: targetTable?.id ?? table.id,
       tableName: targetTable?.name ?? table.name,
+      tableAlias: targetTable ? targetTable.temporaryName : table.temporaryName,
       items,
       unmatched: interpretation.unmatched,
     };
@@ -134,7 +135,7 @@ export class OrdersController {
     const order = await this.ordersService.openOrderForTable(tableId, waiter.id, barId);
     const products = await this.productsService.findActiveByCategory(barId, categoryId);
     return {
-      title: `Mesa ${table.name} · ${category.name}`,
+      title: `Mesa ${table.name}${table.temporaryName ? ` (${table.temporaryName})` : ''} · ${category.name}`,
       table,
       order,
       category,

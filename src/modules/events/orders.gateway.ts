@@ -83,6 +83,12 @@ export class OrdersGateway implements OnGatewayInit {
     this.server.to(this.room(barId, 'waiters')).emit('waiter:tablesChanged');
   }
 
+  notifyTableAliasChanged(barId: number) {
+    this.server.to(this.room(barId, 'waiters')).emit('waiter:tablesChanged');
+    this.server.to(this.room(barId, 'waiters')).emit('waiter:tableAliasChanged');
+    this.server.to(this.room(barId, 'kitchen')).emit('kitchen:tableChanged');
+  }
+
   private room(barId: number, role: 'kitchen' | 'waiters'): string {
     return `bar:${barId}:${role}`;
   }

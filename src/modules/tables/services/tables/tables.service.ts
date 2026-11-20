@@ -94,6 +94,41 @@ export class TablesService {
   ): Promise<void> {
     const query = this.tablesRepository.updateOne({ id, barId }, { status });
     if (session) query.session(session);
-    await query.exec();
+    const result = await query.exec();
+    if (!result.matchedCount) throw new NotFoundException('Mesa no encontrada');
+
+    if (status === 'libre') {
+      const clearAliasQuery = this.tablesRepository.updateOne(
+        { id, barId },
+        { $unset: { temporaryName: 1 } },
+      );
+      if (session) clearAliasQuery.session(session);
+      await clearAliasQuery.exec();
+    }
+  }
+
+  async setTemporaryName(
+    id: number,
+    barId: number,
+    temporaryName: string,
+  ): Promise<void> {
+    const name = temporaryName.trim();
+    if (!name || name.length > 60) {
+      throw new BadRequestException('El nombre debe tener entre 1 y 60 caracteres');
+    }
+    const table = await this.findOne(id, barId);
+    if (!table) throw new NotFoundException('Mesa no encontrada');
+    if (table.status !== 'ocupada') {
+      throw new BadRequestException('Solo se puede cambiar el nombre de una mesa ocupada');
+    }
+    const result = await this.tablesRepository
+      .updateOne(
+        { id, barId, status: 'ocupada' },
+        { $set: { temporaryName: name } },
+      )
+      .exec();
+    if (!result.matchedCount) {
+      throw new BadRequestException('La mesa ya no está ocupada');
+    }
   }
 }

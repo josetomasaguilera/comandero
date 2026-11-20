@@ -16,6 +16,7 @@
     <label>Nombre
       <input type="text" name="name" value="{{values.name}}" required maxlength="100">
     </label>
+    {{#if values.temporaryName}}<p class="table-name-alias">({{values.temporaryName}})</p>{{/if}}
     <label>Zona
       <select name="zone" required>
         {{#each zones}}

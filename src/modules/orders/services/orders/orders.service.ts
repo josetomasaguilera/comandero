@@ -102,6 +102,7 @@ export class OrdersService {
       } };
     });
     if (snapshots.length) await this.items.bulkWrite(snapshots);
+    order.tableAlias = order.table?.temporaryName ?? null;
     order.status = 'cerrado';
     order.closedAt = new Date();
     await (order as any).save();

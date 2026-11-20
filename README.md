@@ -53,7 +53,7 @@ Sin esta clave, el botón de voz seguirá transcribiendo, pero no podrá interpr
    npm run start:dev
    ```
 
-   La app queda disponible en `http://localhost:3002`.
+   La app queda disponible en `http://localhost:8080`.
 
 ## Estructura
 

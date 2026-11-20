@@ -20,7 +20,7 @@
         {{#each orders}}
         <tr>
           <td>#{{this.id}}</td>
-          <td>{{#if this.table}}{{this.table.name}}{{else}}Mesa #{{this.tableId}}{{/if}}</td>
+          <td>{{#if this.table}}{{this.table.name}}{{else}}Mesa #{{this.tableId}}{{/if}}{{#if this.tableAlias}} <span class="table-name-alias">({{this.tableAlias}})</span>{{/if}}</td>
           <td>{{formatDate this.closedAt}}</td>
           <td><a href="/orders/closed/{{this.id}}">Ver detalle</a></td>
         </tr>

@@ -6,6 +6,7 @@ export type OrderStatus = 'abierto' | 'cerrado';
 export class Order {
   @Prop({ required: true, unique: true }) id: number;
   @Prop({ required: true, index: true }) tableId: number;
+  @Prop({ type: String, default: null }) tableAlias!: string | null;
   table: Table;
   @Prop({ required: true }) waiterId: number;
   @Prop({ default: 'abierto', enum: ['abierto', 'cerrado'] }) status: OrderStatus;

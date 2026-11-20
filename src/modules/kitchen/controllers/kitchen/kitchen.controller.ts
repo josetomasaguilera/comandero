@@ -34,12 +34,16 @@ export class KitchenController {
     const items = await this.ordersService.findKitchenPendingItems(barId);
     const byTable = new Map<
       number,
-      { tableName: string; items: typeof items }
+      { tableName: string; tableAlias: string | null; items: typeof items }
     >();
     for (const item of items) {
       const tableId = item.order.tableId;
       if (!byTable.has(tableId)) {
-        byTable.set(tableId, { tableName: item.order.table.name, items: [] });
+        byTable.set(tableId, {
+          tableName: item.order.table.name,
+          tableAlias: item.order.table.temporaryName,
+          items: [],
+        });
       }
       byTable.get(tableId)!.items.push(item);
     }

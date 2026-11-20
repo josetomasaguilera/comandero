@@ -15,7 +15,7 @@
   <div class="kitchen-board">
     {{#each tables}}
     <section class="kitchen-ticket">
-      <h2>{{this.tableName}}</h2>
+      <h2>{{this.tableName}}{{#if this.tableAlias}} <span class="table-name-alias">({{this.tableAlias}})</span>{{/if}}</h2>
       <ul>
         {{#each this.items}}
         <li class="kitchen-item">
@@ -106,6 +106,7 @@
     playKitchenSound('removed');
     window.setTimeout(() => window.location.reload(), 700);
   });
+  socket.on('kitchen:tableChanged', () => window.location.reload());
 </script>
 </body>
 </html>

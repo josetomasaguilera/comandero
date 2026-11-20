@@ -11,7 +11,7 @@
 <main class="container order-page">
   <div class="order-page__header">
     <a href="/tables/{{table.id}}/order">&larr; Categorías</a>
-    <h1>{{table.name}} <span class="badge badge--{{table.status}}">{{table.status}}</span></h1>
+    <h1>{{table.name}}{{#if table.temporaryName}} <span class="table-name-alias">({{table.temporaryName}})</span>{{/if}} <span class="badge badge--{{table.status}}">{{table.status}}</span></h1>
   </div>
 
   <div class="order-layout">
@@ -89,10 +89,11 @@
 <script src="/socket.io/socket.io.js"></script>
 <script>
   const socket = io();
-  socket.emit('join', 'waiters');
+  socket.emit('join', { barId: {{currentBar.id}}, role: 'waiters' });
   socket.on('waiter:itemReady', (data) => {
     if (data.tableId === {{table.id}}) window.location.reload();
   });
+  socket.on('waiter:tableAliasChanged', () => window.location.reload());
 </script>
 </body>
 </html>
